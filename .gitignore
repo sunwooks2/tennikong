@@ -1,0 +1,31 @@
+# 환경 변수 (비밀번호 포함 — git에 올리지 않음)
+db.txt
+.env
+.env.local
+mobile/.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Expo
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+expo-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Build
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
