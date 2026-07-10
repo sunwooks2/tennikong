@@ -12,6 +12,7 @@ interface CollapsibleStatsSectionProps {
   children: ReactNode;
   hint?: string;
   summary?: string;
+  emoji?: string;
   expanded: boolean;
   onToggle: () => void;
   isLast?: boolean;
@@ -23,6 +24,7 @@ export function CollapsibleStatsSection({
   children,
   hint,
   summary,
+  emoji,
   expanded,
   onToggle,
   isLast = false,
@@ -34,6 +36,7 @@ export function CollapsibleStatsSection({
         style={({ pressed }) => [styles.headerButton, pressed && styles.headerPressed]}
         accessibilityRole="button"
         accessibilityState={{ expanded }}>
+        {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
         <View style={styles.headerText}>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           {!expanded && summary ? (
@@ -147,6 +150,12 @@ const styles = StyleSheet.create({
   },
   headerPressed: {
     opacity: 0.75,
+  },
+  emoji: {
+    fontSize: 28,
+    lineHeight: 32,
+    width: 34,
+    textAlign: 'center',
   },
   headerText: {
     flex: 1,

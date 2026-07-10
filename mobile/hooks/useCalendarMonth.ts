@@ -3,12 +3,14 @@ import { useFocusEffect } from 'expo-router';
 
 import {
   computeMonthlySummary,
+  fetchAllMatches,
   fetchMatchesForMonth,
-  getDatesWithMatches,
+  getMatchCountByDate,
   getMatchesForDate,
 } from '@/services/matches';
 import type { Match, MonthlySummary } from '@/types/database';
 import { addMonths, toDateKey } from '@/utils/date';
+import { computeStreakStats, type StreakStats } from '@/utils/growth';
 
 interface UseCalendarMonthOptions {
   enabled: boolean;
@@ -20,12 +22,14 @@ export function useCalendarMonth({ enabled }: UseCalendarMonthOptions) {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState(toDateKey(today));
   const [matches, setMatches] = useState<Match[]>([]);
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadMonth = useCallback(async () => {
     if (!enabled) {
       setMatches([]);
+      setAllMatches([]);
       setError(null);
       return;
     }
@@ -33,13 +37,22 @@ export function useCalendarMonth({ enabled }: UseCalendarMonthOptions) {
     setLoading(true);
     setError(null);
 
-    const { data, error: fetchError } = await fetchMatchesForMonth(year, month);
+    const [monthResult, allResult] = await Promise.all([
+      fetchMatchesForMonth(year, month),
+      fetchAllMatches(),
+    ]);
 
-    if (fetchError) {
-      setError(fetchError.message);
+    if (monthResult.error) {
+      setError(monthResult.error.message);
       setMatches([]);
     } else {
-      setMatches((data as Match[]) ?? []);
+      setMatches((monthResult.data as Match[]) ?? []);
+    }
+
+    if (allResult.error) {
+      setAllMatches([]);
+    } else {
+      setAllMatches((allResult.data as Match[]) ?? []);
     }
 
     setLoading(false);
@@ -60,7 +73,12 @@ export function useCalendarMonth({ enabled }: UseCalendarMonthOptions) {
     [year, month, matches],
   );
 
-  const datesWithMatches = useMemo(() => getDatesWithMatches(matches), [matches]);
+  const streaks: StreakStats = useMemo(
+    () => computeStreakStats(allMatches),
+    [allMatches],
+  );
+
+  const matchCountByDate = useMemo(() => getMatchCountByDate(matches), [matches]);
 
   const selectedMatches = useMemo(
     () => getMatchesForDate(matches, selectedDate),
@@ -95,7 +113,8 @@ export function useCalendarMonth({ enabled }: UseCalendarMonthOptions) {
     month,
     selectedDate,
     summary,
-    datesWithMatches,
+    streaks,
+    matchCountByDate,
     selectedMatches,
     loading,
     error,

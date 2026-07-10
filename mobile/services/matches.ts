@@ -135,6 +135,16 @@ export function getDatesWithMatches(matches: Match[]): Set<string> {
   return new Set(matches.map((m) => m.match_date));
 }
 
+export function getMatchCountByDate(matches: Match[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const match of matches) {
+    counts.set(match.match_date, (counts.get(match.match_date) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
 export function getMatchesForDate(matches: Match[], dateKey: string): Match[] {
   return matches.filter((m) => m.match_date === dateKey);
 }

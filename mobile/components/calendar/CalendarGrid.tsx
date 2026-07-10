@@ -10,16 +10,26 @@ interface CalendarGridProps {
   year: number;
   month: number;
   selectedDate: string;
-  datesWithMatches: Set<string>;
+  matchCountByDate: Map<string, number>;
   onSelectDate: (dateKey: string) => void;
   colors: (typeof Colors)['light'];
+}
+
+/** 일별 경기횟수 → 콩 스탬프 투명도 (3단계: ≤4 / 6+ / 8+) */
+function stampOpacityForCount(count: number, selected: boolean): number {
+  const base =
+    count >= 8 ? 0.78 :
+    count >= 6 ? 0.50 :
+    0.22;
+
+  return selected ? Math.min(base + 0.10, 0.88) : base;
 }
 
 export function CalendarGrid({
   year,
   month,
   selectedDate,
-  datesWithMatches,
+  matchCountByDate,
   onSelectDate,
   colors,
 }: CalendarGridProps) {
@@ -43,7 +53,8 @@ export function CalendarGrid({
       <View style={styles.grid}>
         {cells.map((cell) => {
           const isSelected = cell.dateKey === selectedDate;
-          const hasMatch = datesWithMatches.has(cell.dateKey);
+          const matchCount = matchCountByDate.get(cell.dateKey) ?? 0;
+          const hasMatch = matchCount > 0;
           const dayOfWeek = cell.date.getDay();
           const dayTextColor = isSelected
             ? '#fff'
@@ -79,7 +90,7 @@ export function CalendarGrid({
                     <BeanIcon
                       size={38}
                       variant="stamp"
-                      opacity={isSelected ? 0.55 : 0.38}
+                      opacity={stampOpacityForCount(matchCount, isSelected)}
                       tone={isSelected ? 'light' : 'default'}
                     />
                   </View>

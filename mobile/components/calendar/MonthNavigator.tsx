@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
@@ -11,6 +12,7 @@ interface MonthNavigatorProps {
   onNext: () => void;
   onToday: () => void;
   colors: (typeof Colors)['light'];
+  hintExtra?: ReactNode;
 }
 
 export function MonthNavigator({
@@ -20,6 +22,7 @@ export function MonthNavigator({
   onNext,
   onToday,
   colors,
+  hintExtra,
 }: MonthNavigatorProps) {
   return (
     <View style={styles.row}>
@@ -34,7 +37,10 @@ export function MonthNavigator({
         <Text style={[styles.label, { color: colors.text }]}>
           {formatMonthLabel(year, month)}
         </Text>
-        <Text style={[styles.todayHint, { color: colors.muted }]}>오늘로 이동</Text>
+        <View style={styles.hintRow}>
+          <Text style={[styles.todayHint, { color: colors.muted }]}>오늘로 이동</Text>
+          {hintExtra}
+        </View>
       </Pressable>
 
       <Pressable
@@ -69,12 +75,19 @@ const styles = StyleSheet.create({
   center: {
     alignItems: 'center',
     gap: 2,
+    flex: 1,
+    minWidth: 0,
+  },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   label: {
     fontSize: 17,
     fontWeight: '700',
   },
   todayHint: {
-    fontSize: 11,
+    fontSize: 13,
   },
 });

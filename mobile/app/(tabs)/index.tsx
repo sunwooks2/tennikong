@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import { StreakBadge } from '@/components/calendar/StreakBadge';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { MatchDayList } from '@/components/calendar/MatchDayList';
 import { MonthNavigator } from '@/components/calendar/MonthNavigator';
@@ -30,7 +31,8 @@ export default function CalendarScreen() {
     month,
     selectedDate,
     summary,
-    datesWithMatches,
+    streaks,
+    matchCountByDate,
     selectedMatches,
     loading,
     error,
@@ -62,6 +64,11 @@ export default function CalendarScreen() {
             onNext={goToNextMonth}
             onToday={goToToday}
             colors={colors}
+            hintExtra={
+              isAuthenticated ? (
+                <StreakBadge streaks={streaks} colors={colors} compact />
+              ) : undefined
+            }
           />
           <MonthSummary summary={summary} colors={colors} />
         </View>
@@ -70,7 +77,7 @@ export default function CalendarScreen() {
           year={year}
           month={month}
           selectedDate={selectedDate}
-          datesWithMatches={datesWithMatches}
+          matchCountByDate={matchCountByDate}
           onSelectDate={selectDate}
           colors={colors}
         />
