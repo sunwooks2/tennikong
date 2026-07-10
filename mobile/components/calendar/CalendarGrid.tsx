@@ -1,8 +1,10 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { BeanIcon } from '@/components/brand/BeanIcon';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { WEEKDAY_LABELS, getCalendarCells } from '@/utils/date';
+import { isRedCalendarDay } from '@/utils/koreanHolidays';
 
 interface CalendarGridProps {
   year: number;
@@ -31,7 +33,7 @@ export function CalendarGrid({
             key={label}
             style={[
               styles.weekday,
-              { color: index === 0 ? colors.loss : index === 6 ? colors.tint : colors.muted },
+              { color: index === 0 ? colors.loss : index === 6 ? colors.saturday : colors.muted },
             ]}>
             {label}
           </Text>
@@ -42,6 +44,16 @@ export function CalendarGrid({
         {cells.map((cell) => {
           const isSelected = cell.dateKey === selectedDate;
           const hasMatch = datesWithMatches.has(cell.dateKey);
+          const dayOfWeek = cell.date.getDay();
+          const dayTextColor = isSelected
+            ? '#fff'
+            : !cell.isCurrentMonth
+              ? colors.muted
+              : isRedCalendarDay(cell.dateKey, dayOfWeek)
+                ? colors.loss
+                : dayOfWeek === 6
+                  ? colors.saturday
+                  : colors.text;
 
           return (
             <Pressable
@@ -57,20 +69,22 @@ export function CalendarGrid({
                 <Text
                   style={[
                     styles.dayText,
-                    { color: cell.isCurrentMonth ? colors.text : colors.muted },
-                    isSelected && { color: '#fff', fontWeight: '700' },
+                    { color: dayTextColor },
+                    isSelected && { fontWeight: '700' },
                   ]}>
                   {cell.date.getDate()}
                 </Text>
+                {hasMatch && (
+                  <View style={styles.beanStamp} pointerEvents="none">
+                    <BeanIcon
+                      size={38}
+                      variant="stamp"
+                      opacity={isSelected ? 0.55 : 0.38}
+                      tone={isSelected ? 'light' : 'default'}
+                    />
+                  </View>
+                )}
               </View>
-              {hasMatch && (
-                <View
-                  style={[
-                    styles.dot,
-                    { backgroundColor: isSelected ? '#fff' : colors.tint },
-                  ]}
-                />
-              )}
             </Pressable>
           );
         })}
@@ -103,22 +117,25 @@ const styles = StyleSheet.create({
     width: `${100 / 7}%`,
     alignItems: 'center',
     paddingVertical: 6,
-    gap: 2,
   },
   dayCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
   dayText: {
     fontSize: 15,
+    zIndex: 1,
   },
-  dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+  beanStamp: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
 });

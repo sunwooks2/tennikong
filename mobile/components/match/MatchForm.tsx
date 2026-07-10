@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -35,6 +34,7 @@ import {
   type PlayerRoster,
 } from '@/utils/matchForm';
 import { toDateKey } from '@/utils/date';
+import { getErrorMessage, showAlert } from '@/utils/alert';
 
 interface MatchFormProps {
   userId: string;
@@ -115,11 +115,11 @@ export function MatchForm({
     });
 
     if (validationError) {
-      Alert.alert('입력 확인', validationError);
+      showAlert('입력 확인', validationError);
       return;
     }
 
-    const entries = parseEntries(roster, entryInputs);
+    const entries = parseEntries(roster, entryInputs, defaultMyName);
     const shared = {
       match_date: matchDate,
       match_type: matchType,
@@ -141,9 +141,9 @@ export function MatchForm({
       }
       onSuccess();
     } catch (error) {
-      Alert.alert(
+      showAlert(
         isEdit ? '수정 실패' : '등록 실패',
-        error instanceof Error ? error.message : '저장에 실패했습니다.',
+        getErrorMessage(error, '저장에 실패했습니다.'),
       );
     } finally {
       setSubmitting(false);

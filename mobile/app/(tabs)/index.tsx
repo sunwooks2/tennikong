@@ -113,16 +113,6 @@ export default function CalendarScreen() {
           </View>
         )}
       </ScrollView>
-
-      {isAuthenticated && (
-        <Pressable
-          onPress={() =>
-            router.push({ pathname: '/match/new', params: { date: selectedDate } })
-          }
-          style={[styles.fab, { backgroundColor: colors.tint }]}>
-          <Text style={styles.fabText}>+</Text>
-        </Pressable>
-      )}
     </View>
   );
 }
@@ -134,12 +124,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     gap: 16,
-    paddingBottom: 88,
+    paddingBottom: 80,
   },
   summarySection: {
     borderRadius: 16,
     padding: 12,
-    gap: 12,
+    gap: 8,
   },
   loader: {
     paddingVertical: 16,
@@ -157,26 +147,5 @@ const styles = StyleSheet.create({
   bannerLink: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  fabText: {
-    color: '#fff',
-    fontSize: 28,
-    lineHeight: 30,
-    fontWeight: '300',
   },
 });

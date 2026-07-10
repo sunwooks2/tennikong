@@ -47,9 +47,11 @@ export interface Match {
 export interface MonthlySummary {
   year: number;
   month: number;
+  days_played: number;
   total: number;
   wins: number;
   losses: number;
+  draws: number;
   win_rate: number;
 }
 

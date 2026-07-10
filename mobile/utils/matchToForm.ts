@@ -3,21 +3,22 @@ import type { MatchEntryInput, PlayerRoster } from '@/utils/matchForm';
 import {
   createDefaultRoster,
   createEmptyEntry,
+  getRosterSlotDisplayName,
   toLineupDisplayName,
 } from '@/utils/matchForm';
 import { sortRegistrationMatches } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
 
-function matchToEntryInput(match: Match, entryNumber: number): MatchEntryInput {
+function matchToEntryInput(match: Match, entryNumber: number, roster: PlayerRoster): MatchEntryInput {
   const games = getMatchGames(match);
   const game = games[0];
 
   return {
     entry_number: entryNumber,
-    our_fore: toLineupDisplayName(match.our_fore_name, match.my_name),
-    our_back: toLineupDisplayName(match.our_back_name, match.my_name),
-    opponent_fore: match.opponent_fore_name ?? '',
-    opponent_back: match.opponent_back_name ?? '',
+    our_fore: rosterNameToLineupDisplay(roster, match.our_fore_name),
+    our_back: rosterNameToLineupDisplay(roster, match.our_back_name),
+    opponent_fore: rosterNameToLineupDisplay(roster, match.opponent_fore_name),
+    opponent_back: rosterNameToLineupDisplay(roster, match.opponent_back_name),
     my_score: game ? String(game.my_score) : match.my_score != null ? String(match.my_score) : '',
     opponent_score:
       game ? String(game.opponent_score) : match.opponent_score != null ? String(match.opponent_score) : '',
@@ -31,6 +32,20 @@ function buildRoster(match: Match): PlayerRoster {
     player3: match.opponent1_name,
     player4: match.opponent2_name ?? '',
   };
+}
+
+function rosterNameToLineupDisplay(roster: PlayerRoster, name: string | null | undefined): string {
+  const trimmed = name?.trim() ?? '';
+  if (!trimmed) return '';
+
+  for (const key of ['player1', 'player2', 'player3', 'player4'] as const) {
+    const resolved = roster[key].trim() || getRosterSlotDisplayName(roster, key);
+    if (trimmed === resolved) {
+      return getRosterSlotDisplayName(roster, key);
+    }
+  }
+
+  return toLineupDisplayName(trimmed, roster.player1);
 }
 
 export function registrationToFormValues(matches: Match[]): {
@@ -47,6 +62,7 @@ export function registrationToFormValues(matches: Match[]): {
 } {
   const orderedMatches = sortRegistrationMatches(matches);
   const primary = orderedMatches[0];
+  const roster = buildRoster(primary);
 
   return {
     matchDate: primary.match_date,
@@ -55,8 +71,8 @@ export function registrationToFormValues(matches: Match[]): {
     venueName: primary.venue_name ?? undefined,
     memo: primary.memo ?? undefined,
     tags: (primary.match_tags ?? []).map((tag) => tag.tag_name),
-    roster: buildRoster(primary),
-    entryInputs: orderedMatches.map((match, index) => matchToEntryInput(match, index + 1)),
+    roster,
+    entryInputs: orderedMatches.map((match, index) => matchToEntryInput(match, index + 1, roster)),
     matchIds: orderedMatches.map((match) => match.id),
     registrationId: primary.registration_id ?? null,
   };

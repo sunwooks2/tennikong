@@ -5,6 +5,7 @@ import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
+import { getKoreanHolidayName } from '@/utils/koreanHolidays';
 import { groupMatchesByRegistration } from '@/utils/matchDisplay';
 
 import { MatchListItem } from './MatchListItem';
@@ -19,6 +20,7 @@ interface MatchDayListProps {
 export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayListProps) {
   const router = useRouter();
   const matchGroups = groupMatchesByRegistration(matches);
+  const holidayName = getKoreanHolidayName(dateKey);
 
   const goToNewMatch = () => {
     router.push({ pathname: '/match/new', params: { date: dateKey } });
@@ -27,9 +29,14 @@ export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayList
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.dateLabel, { color: colors.text }]}>
-          {formatDayLabel(dateKey)}
-        </Text>
+        <View style={styles.dateRow}>
+          <Text style={[styles.dateLabel, { color: colors.text }]}>
+            {formatDayLabel(dateKey)}
+          </Text>
+          {holidayName && (
+            <Text style={[styles.holidayLabel, { color: colors.loss }]}>{holidayName}</Text>
+          )}
+        </View>
         <Pressable
           onPress={goToNewMatch}
           style={[styles.addButton, { backgroundColor: colors.tint }]}>
@@ -69,10 +76,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+  },
+  dateRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    minWidth: 0,
   },
   dateLabel: {
     fontSize: 17,
     fontWeight: '700',
+  },
+  holidayLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   addButton: {
     borderRadius: 8,

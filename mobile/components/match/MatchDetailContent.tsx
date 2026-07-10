@@ -9,7 +9,7 @@ import {
 import Colors from '@/constants/Colors';
 import type { Match, MatchResult } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
-import { MY_ROSTER_LABEL, toLineupDisplayName } from '@/utils/matchForm';
+import { MY_ROSTER_LABEL, type PlayerRoster, getRosterSlotDisplayName, toLineupDisplayName } from '@/utils/matchForm';
 import { sortRegistrationMatches } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
 import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
@@ -53,11 +53,17 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
   const match = orderedMatches[0];
   const tags = match.match_tags ?? [];
   const entries = buildMatchDisplayEntries(orderedMatches);
+  const roster: PlayerRoster = {
+    player1: match.my_name,
+    player2: match.partner_name ?? '',
+    player3: match.opponent1_name,
+    player4: match.opponent2_name ?? '',
+  };
   const rosterNames = [
     MY_ROSTER_LABEL,
-    match.partner_name?.trim() || '선수2',
-    match.opponent1_name?.trim() || '-',
-    match.opponent2_name?.trim() || '선수4',
+    getRosterSlotDisplayName(roster, 'player2'),
+    getRosterSlotDisplayName(roster, 'player3'),
+    getRosterSlotDisplayName(roster, 'player4'),
   ];
 
   return (

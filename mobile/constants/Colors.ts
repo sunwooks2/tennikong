@@ -12,6 +12,7 @@ export default {
     win: '#2D6A4F',
     loss: '#C0392B',
     draw: '#E67E22',
+    saturday: '#2563EB',
     muted: '#6C757D',
   },
   dark: {
@@ -24,6 +25,7 @@ export default {
     win: '#95D5B2',
     loss: '#E74C3C',
     draw: '#F39C12',
+    saturday: '#60A5FA',
     muted: '#ADB5BD',
   },
 };

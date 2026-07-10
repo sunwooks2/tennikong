@@ -9,12 +9,13 @@ import { getMonthRange } from '@/utils/date';
 import { getRegistrationFingerprint, sortRegistrationMatches } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
 import type { ParsedMatchEntry } from '@/utils/matchForm';
-import { deriveMyPosition } from '@/utils/matchForm';
+import { deriveMyPosition, isGuestPlaceholderName } from '@/utils/matchForm';
 
 const MATCH_LIST_SELECT = `
   id,
   match_date,
   match_type,
+  court_type,
   result,
   my_name,
   partner_name,
@@ -24,6 +25,7 @@ const MATCH_LIST_SELECT = `
   our_back_name,
   opponent_fore_name,
   opponent_back_name,
+  position,
   my_score,
   opponent_score,
   venue_name,
@@ -96,6 +98,15 @@ export async function fetchMatchesForMonth(year: number, month: number) {
     .order('created_at', { ascending: true });
 }
 
+export async function fetchAllMatches() {
+  return supabase
+    .from('matches')
+    .select(MATCH_LIST_SELECT)
+    .is('deleted_at', null)
+    .order('match_date', { ascending: false })
+    .order('created_at', { ascending: false });
+}
+
 export function computeMonthlySummary(
   year: number,
   month: number,
@@ -104,14 +115,18 @@ export function computeMonthlySummary(
   const games = matches.flatMap((match) => getMatchGames(match));
   const wins = games.filter((game) => game.result === 'win').length;
   const losses = games.filter((game) => game.result === 'loss').length;
+  const draws = games.filter((game) => game.result === 'draw').length;
   const total = games.length;
+  const daysPlayed = new Set(matches.map((match) => match.match_date)).size;
 
   return {
     year,
     month,
+    days_played: daysPlayed,
     total,
     wins,
     losses,
+    draws,
     win_rate: total > 0 ? Math.round((wins / total) * 100) : 0,
   };
 }
@@ -239,6 +254,7 @@ async function upsertAliases(
     venueName?.trim() ? upsertVenueAlias(userId, venueName) : Promise.resolve(),
     ...names
       .filter((name) => name !== venueName?.trim())
+      .filter((name) => !isGuestPlaceholderName(name))
       .map((name) => upsertPlayerAlias(userId, name)),
   ]);
 }

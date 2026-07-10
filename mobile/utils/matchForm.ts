@@ -19,10 +19,17 @@ export const ROSTER_KEYS: (keyof PlayerRoster)[] = [
 
 const ROSTER_SLOT_DEFAULTS: Record<keyof PlayerRoster, string | null> = {
   player1: null,
-  player2: '선수2',
-  player3: '선수3',
-  player4: '선수4',
+  player2: '선수1',
+  player3: '선수2',
+  player4: '선수3',
 };
+
+export const GUEST_ROSTER_NAMES = ['선수1', '선수2', '선수3'] as const;
+
+export function isGuestPlaceholderName(name: string): boolean {
+  const trimmed = name.trim();
+  return /^선수\d+$/.test(trimmed);
+}
 
 export interface MatchEntryInput {
   entry_number: number;
@@ -78,7 +85,20 @@ export function toLineupDisplayName(
 
 export function resolveLineupName(roster: PlayerRoster, selected: string): string {
   const trimmed = selected.trim();
-  if (trimmed === MY_ROSTER_LABEL) return roster.player1.trim();
+  if (!trimmed) return '';
+
+  const resolved = resolveRosterForSave(roster);
+
+  if (trimmed === MY_ROSTER_LABEL) {
+    return resolved.player1;
+  }
+
+  for (const key of ROSTER_KEYS) {
+    if (getRosterSlotDisplayName(roster, key) === trimmed) {
+      return resolved[key];
+    }
+  }
+
   return trimmed;
 }
 
@@ -91,12 +111,15 @@ export function getSelectableRosterOptions(
     .filter((name) => name.length > 0 && !excludedSet.has(name));
 }
 
-export function resolveRosterForSave(roster: PlayerRoster): PlayerRoster {
+export function resolveRosterForSave(
+  roster: PlayerRoster,
+  options?: { defaultMyName?: string },
+): PlayerRoster {
   return {
-    player1: roster.player1.trim(),
-    player2: roster.player2.trim() || '선수2',
-    player3: roster.player3.trim() || '선수3',
-    player4: roster.player4.trim() || '선수4',
+    player1: roster.player1.trim() || options?.defaultMyName?.trim() || '나',
+    player2: roster.player2.trim() || '선수1',
+    player3: roster.player3.trim() || '선수2',
+    player4: roster.player4.trim() || '선수3',
   };
 }
 
@@ -125,8 +148,9 @@ function parseScore(value: string): number {
 export function parseEntries(
   roster: PlayerRoster,
   inputs: MatchEntryInput[],
+  defaultMyName?: string,
 ): ParsedMatchEntry[] {
-  const resolvedRoster = resolveRosterForSave(roster);
+  const resolvedRoster = resolveRosterForSave(roster, { defaultMyName });
 
   return inputs.map((entry) => {
     const myScore = parseScore(entry.my_score);
@@ -134,10 +158,10 @@ export function parseEntries(
 
     return {
       roster: resolvedRoster,
-      our_fore: resolveLineupName(resolvedRoster, entry.our_fore),
-      our_back: resolveLineupName(resolvedRoster, entry.our_back),
-      opponent_fore: resolveLineupName(resolvedRoster, entry.opponent_fore),
-      opponent_back: resolveLineupName(resolvedRoster, entry.opponent_back),
+      our_fore: resolveLineupName(roster, entry.our_fore),
+      our_back: resolveLineupName(roster, entry.our_back),
+      opponent_fore: resolveLineupName(roster, entry.opponent_fore),
+      opponent_back: resolveLineupName(roster, entry.opponent_back),
       my_score: myScore,
       opponent_score: opponentScore,
       result: calculateGameResult(myScore, opponentScore),
@@ -167,8 +191,6 @@ export function validateMatchForm(params: {
   }
 
   if (params.memo.length > 200) return '메모는 200자 이하여야 합니다.';
-
-  if (!params.roster.player1.trim()) return '프로필 닉네임을 설정해 주세요.';
 
   const allowedOptions = new Set(
     ROSTER_KEYS.map((key) => getRosterSlotDisplayName(params.roster, key)).filter(Boolean),
@@ -228,8 +250,12 @@ export function deriveMyPosition(
   ourFore: string,
   ourBack: string,
 ): 'fore' | 'back' | null {
-  const me = roster.player1.trim();
-  if (ourFore === me || ourFore === MY_ROSTER_LABEL) return 'fore';
-  if (ourBack === me || ourBack === MY_ROSTER_LABEL) return 'back';
+  const resolved = resolveRosterForSave(roster);
+  const me = resolved.player1;
+  const fore = resolveLineupName(roster, ourFore);
+  const back = resolveLineupName(roster, ourBack);
+
+  if (fore === me || ourFore === MY_ROSTER_LABEL) return 'fore';
+  if (back === me || ourBack === MY_ROSTER_LABEL) return 'back';
   return null;
 }

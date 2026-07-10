@@ -18,9 +18,9 @@ interface PlayerRosterInputProps {
 }
 
 const OTHER_PLAYERS: { key: keyof PlayerRoster; placeholder: string }[] = [
-  { key: 'player2', placeholder: '선수2' },
-  { key: 'player3', placeholder: '선수3' },
-  { key: 'player4', placeholder: '선수4' },
+  { key: 'player2', placeholder: '선수1' },
+  { key: 'player3', placeholder: '선수2' },
+  { key: 'player4', placeholder: '선수3' },
 ];
 
 export function PlayerRosterInput({

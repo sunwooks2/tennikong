@@ -12,61 +12,64 @@ interface MonthSummaryProps {
 export function MonthSummary({ summary, colors }: MonthSummaryProps) {
   const winRateLabel = summary.total > 0 ? `${summary.win_rate}%` : '-';
 
-  return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}>
-      <View style={styles.row}>
-        <SummaryItem emoji="🎾" label="경기" value={String(summary.total)} colors={colors} />
-        <SummaryItem emoji="🏆" label="승" value={String(summary.wins)} colors={colors} />
-        <SummaryItem emoji="❌" label="패" value={String(summary.losses)} colors={colors} />
-        <SummaryItem emoji="📈" label="승률" value={winRateLabel} colors={colors} />
-      </View>
-    </View>
-  );
-}
+  const items = [
+    { label: '경기일수', value: String(summary.days_played), valueColor: colors.text },
+    { label: '경기횟수', value: String(summary.total), valueColor: colors.text },
+    { label: '승', value: String(summary.wins), valueColor: colors.win },
+    { label: '패', value: String(summary.losses), valueColor: colors.loss },
+    { label: '무', value: String(summary.draws), valueColor: colors.draw },
+    { label: '승률', value: winRateLabel, valueColor: colors.tint },
+  ];
 
-function SummaryItem({
-  emoji,
-  label,
-  value,
-  colors,
-}: {
-  emoji: string;
-  label: string;
-  value: string;
-  colors: (typeof Colors)['light'];
-}) {
   return (
-    <View style={styles.item}>
-      <Text style={styles.emoji}>{emoji}</Text>
-      <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
-      <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
+    <View
+      style={[
+        styles.strip,
+        { backgroundColor: colors.background, borderColor: colors.muted + '33' },
+      ]}>
+      {items.map((item, index) => (
+        <View
+          key={item.label}
+          style={[
+            styles.cell,
+            index < items.length - 1 && [
+              styles.cellDivider,
+              { borderRightColor: colors.muted + '33' },
+            ],
+          ]}>
+          <Text style={[styles.value, { color: item.valueColor }]}>{item.value}</Text>
+          <Text style={[styles.label, { color: colors.muted }]}>{item.label}</Text>
+        </View>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-  },
-  row: {
+  strip: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 8,
   },
-  item: {
-    alignItems: 'center',
-    gap: 4,
+  cell: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+    minWidth: 0,
   },
-  emoji: {
-    fontSize: 20,
+  cellDivider: {
+    borderRightWidth: StyleSheet.hairlineWidth,
   },
   value: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
+    lineHeight: 18,
   },
   label: {
-    fontSize: 12,
+    fontSize: 9,
+    fontWeight: '500',
+    lineHeight: 11,
   },
 });

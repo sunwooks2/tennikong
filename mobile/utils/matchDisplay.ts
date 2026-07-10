@@ -1,5 +1,5 @@
 import type { Match } from '@/types/database';
-import { MY_ROSTER_LABEL } from '@/utils/matchForm';
+import { MY_ROSTER_LABEL, type PlayerRoster, getRosterSlotDisplayName } from '@/utils/matchForm';
 import { getMatchGames } from '@/utils/matchNormalize';
 
 export function formatMyTeam(match: Match): string {
@@ -27,14 +27,19 @@ export function formatMatchTitle(match: Match): string {
 }
 
 export function formatRosterPlayerNames(match: Match): string {
-  const names = [
-    MY_ROSTER_LABEL,
-    match.partner_name?.trim() || '선수2',
-    match.opponent1_name?.trim() || '-',
-    match.opponent2_name?.trim() || '선수4',
-  ];
+  const roster: PlayerRoster = {
+    player1: match.my_name,
+    player2: match.partner_name ?? '',
+    player3: match.opponent1_name,
+    player4: match.opponent2_name ?? '',
+  };
 
-  return names.join('·');
+  return [
+    MY_ROSTER_LABEL,
+    getRosterSlotDisplayName(roster, 'player2'),
+    getRosterSlotDisplayName(roster, 'player3'),
+    getRosterSlotDisplayName(roster, 'player4'),
+  ].join('·');
 }
 
 export function summarizeRegistrationResults(matches: Match[]) {
