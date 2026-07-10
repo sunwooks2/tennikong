@@ -7,10 +7,11 @@ export type MatchType =
 
 export type CourtType = 'hard' | 'clay' | 'artificial_grass' | 'indoor' | 'other';
 export type PositionType = 'fore' | 'back';
-export type MatchResult = 'win' | 'loss';
+export type MatchResult = 'win' | 'loss' | 'draw';
 
-export interface MatchSet {
-  set_number: number;
+export interface MatchGame {
+  game_number: number;
+  result: MatchResult;
   my_score: number;
   opponent_score: number;
 }
@@ -27,11 +28,19 @@ export interface Match {
   opponent1_name: string;
   opponent2_name: string | null;
   position: PositionType | null;
+  our_fore_name: string | null;
+  our_back_name: string | null;
+  opponent_fore_name: string | null;
+  opponent_back_name: string | null;
   result: MatchResult;
+  my_score: number | null;
+  opponent_score: number | null;
   memo: string | null;
+  registration_id: string | null;
+  registration_order: number | null;
   created_at: string;
   updated_at: string;
-  match_sets?: MatchSet[];
+  match_games?: MatchGame[];
   match_tags?: { tag_name: string }[];
 }
 

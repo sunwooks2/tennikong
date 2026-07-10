@@ -51,7 +51,6 @@ export function TagInput({ tags, onChange, colors }: TagInputProps) {
         placeholderTextColor={colors.muted}
         returnKeyType="done"
       />
-      <Text style={[styles.hint, { color: colors.muted }]}>Enter로 태그 추가</Text>
     </View>
   );
 }
@@ -76,12 +75,9 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-  hint: {
-    fontSize: 12,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
   },
 });

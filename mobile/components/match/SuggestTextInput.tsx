@@ -11,6 +11,7 @@ interface SuggestTextInputProps {
   onFetchSuggestions: (query: string) => Promise<string[]>;
   colors: (typeof Colors)['light'];
   placeholder?: string;
+  compact?: boolean;
 }
 
 export function SuggestTextInput({
@@ -20,6 +21,7 @@ export function SuggestTextInput({
   onFetchSuggestions,
   colors,
   placeholder,
+  compact = false,
 }: SuggestTextInputProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [focused, setFocused] = useState(false);
@@ -40,10 +42,10 @@ export function SuggestTextInput({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+      {label ? <Text style={[styles.label, { color: colors.text }]}>{label}</Text> : null}
       <TextInput
         style={[
-          styles.input,
+          compact ? styles.inputCompact : styles.input,
           { color: colors.text, borderColor: colors.muted, backgroundColor: colors.card },
         ]}
         value={value}
@@ -86,6 +88,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
+  },
+  inputCompact: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
   },
   suggestions: {
     borderWidth: 1,

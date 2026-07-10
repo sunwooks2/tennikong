@@ -5,6 +5,7 @@ import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
+import { groupMatchesByRegistration } from '@/utils/matchDisplay';
 
 import { MatchListItem } from './MatchListItem';
 
@@ -17,6 +18,7 @@ interface MatchDayListProps {
 
 export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayListProps) {
   const router = useRouter();
+  const matchGroups = groupMatchesByRegistration(matches);
 
   const goToNewMatch = () => {
     router.push({ pathname: '/match/new', params: { date: dateKey } });
@@ -50,8 +52,8 @@ export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayList
         </View>
       ) : (
         <View style={styles.list}>
-          {matches.map((match, index) => (
-            <MatchListItem key={match.id} match={match} index={index} colors={colors} />
+          {matchGroups.map((group, index) => (
+            <MatchListItem key={group[0].id} matches={group} index={index} colors={colors} />
           ))}
         </View>
       )}

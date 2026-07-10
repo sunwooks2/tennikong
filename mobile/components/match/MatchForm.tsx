@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,37 +12,47 @@ import {
 } from 'react-native';
 
 import { ChipSelector } from '@/components/match/ChipSelector';
-import { SetScoreEditor } from '@/components/match/SetScoreEditor';
+import { MatchEntryEditor } from '@/components/match/MatchEntryEditor';
+import { PlayerRosterInput } from '@/components/match/PlayerRosterInput';
 import { SuggestTextInput } from '@/components/match/SuggestTextInput';
 import { TagInput } from '@/components/match/TagInput';
 import { Text } from '@/components/Themed';
-import {
-  COURT_TYPE_LABELS,
-  MATCH_TYPE_LABELS,
-  POSITION_LABELS,
-  RESULT_LABELS,
-  isDoublesMatch,
-} from '@/constants/labels';
+import { COURT_TYPE_FORM_OPTIONS, COURT_TYPE_LABELS, MATCH_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
-import type { CourtType, MatchType, PositionType } from '@/types/database';
+import type { CourtType, MatchType } from '@/types/database';
 import {
-  createMatch,
+  createMatches,
   fetchPlayerSuggestions,
   fetchVenueSuggestions,
+  updateRegistration,
 } from '@/services/matches';
 import {
-  createEmptySet,
-  parseSets,
+  createDefaultRoster,
+  createEmptyEntry,
+  parseEntries,
   validateMatchForm,
-  type SetScoreInput,
+  type MatchEntryInput,
+  type PlayerRoster,
 } from '@/utils/matchForm';
-import { calculateMatchResult } from '@/utils/matchResult';
 import { toDateKey } from '@/utils/date';
 
 interface MatchFormProps {
   userId: string;
   defaultMyName: string;
   initialDate?: string;
+  matchId?: string;
+  matchIds?: string[];
+  registrationId?: string | null;
+  initialValues?: {
+    matchDate?: string;
+    matchType?: MatchType;
+    courtType?: CourtType;
+    venueName?: string;
+    memo?: string;
+    tags?: string[];
+    roster?: PlayerRoster;
+    entryInputs?: MatchEntryInput[];
+  };
   colors: (typeof Colors)['light'];
   onSuccess: () => void;
 }
@@ -51,36 +61,40 @@ export function MatchForm({
   userId,
   defaultMyName,
   initialDate,
+  matchId,
+  matchIds,
+  registrationId,
+  initialValues,
   colors,
   onSuccess,
 }: MatchFormProps) {
-  const [matchDate, setMatchDate] = useState(initialDate ?? toDateKey(new Date()));
-  const [matchType, setMatchType] = useState<MatchType>('mens_doubles');
-  const [courtType, setCourtType] = useState<CourtType>('hard');
-  const [venueName, setVenueName] = useState('');
-  const [myName, setMyName] = useState(defaultMyName);
-  const [partnerName, setPartnerName] = useState('');
-  const [opponent1Name, setOpponent1Name] = useState('');
-  const [opponent2Name, setOpponent2Name] = useState('');
-  const [position, setPosition] = useState<PositionType>('fore');
-  const [memo, setMemo] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [setInputs, setSetInputs] = useState<SetScoreInput[]>([createEmptySet(1)]);
+  const [matchDate, setMatchDate] = useState(
+    initialValues?.matchDate ?? initialDate ?? toDateKey(new Date()),
+  );
+  const [matchType, setMatchType] = useState<MatchType>(
+    initialValues?.matchType ?? 'mens_doubles',
+  );
+  const [courtType, setCourtType] = useState<CourtType>(initialValues?.courtType ?? 'hard');
+  const [venueName, setVenueName] = useState(initialValues?.venueName ?? '');
+  const [memo, setMemo] = useState(initialValues?.memo ?? '');
+  const [tags, setTags] = useState<string[]>(initialValues?.tags ?? []);
+  const [roster, setRoster] = useState<PlayerRoster>(
+    initialValues?.roster ?? createDefaultRoster(defaultMyName),
+  );
+  const [entryInputs, setEntryInputs] = useState<MatchEntryInput[]>(
+    initialValues?.entryInputs ?? [createEmptyEntry(1)],
+  );
   const [submitting, setSubmitting] = useState(false);
 
-  const isDoubles = isDoublesMatch(matchType);
+  const isEdit = !!matchId || (matchIds?.length ?? 0) > 0;
 
-  const predictedResult = useMemo(() => {
-    try {
-      const sets = parseSets(setInputs);
-      if (sets.some((s) => Number.isNaN(s.my_score) || Number.isNaN(s.opponent_score))) {
-        return null;
-      }
-      return calculateMatchResult(sets);
-    } catch {
-      return null;
+  useEffect(() => {
+    if (!isEdit && defaultMyName) {
+      setRoster((current) =>
+        current.player1 === defaultMyName ? current : { ...current, player1: defaultMyName },
+      );
     }
-  }, [setInputs]);
+  }, [defaultMyName, isEdit]);
 
   const loadVenueSuggestions = useCallback(async (query: string) => {
     const { data } = await fetchVenueSuggestions(query);
@@ -95,13 +109,9 @@ export function MatchForm({
   const handleSubmit = async () => {
     const validationError = validateMatchForm({
       match_date: matchDate,
-      match_type: matchType,
-      my_name: myName,
-      partner_name: partnerName,
-      opponent1_name: opponent1Name,
-      opponent2_name: opponent2Name,
       memo,
-      setInputs,
+      roster,
+      entryInputs,
     });
 
     if (validationError) {
@@ -109,27 +119,31 @@ export function MatchForm({
       return;
     }
 
+    const entries = parseEntries(roster, entryInputs);
+    const shared = {
+      match_date: matchDate,
+      match_type: matchType,
+      court_type: courtType,
+      venue_name: venueName,
+      memo,
+      tags,
+    };
+
     setSubmitting(true);
     try {
-      await createMatch(userId, {
-        match_date: matchDate,
-        match_type: matchType,
-        court_type: courtType,
-        venue_name: venueName,
-        my_name: myName,
-        partner_name: isDoubles ? partnerName : undefined,
-        opponent1_name: opponent1Name,
-        opponent2_name: isDoubles ? opponent2Name : undefined,
-        position: isDoubles ? position : null,
-        memo,
-        sets: parseSets(setInputs),
-        tags,
-      });
+      if (isEdit && matchIds && matchIds.length > 0) {
+        await updateRegistration(userId, matchIds, registrationId ?? null, {
+          ...shared,
+          entries,
+        });
+      } else {
+        await createMatches(userId, { ...shared, entries });
+      }
       onSuccess();
     } catch (error) {
       Alert.alert(
-        '등록 실패',
-        error instanceof Error ? error.message : '경기 등록에 실패했습니다.',
+        isEdit ? '수정 실패' : '등록 실패',
+        error instanceof Error ? error.message : '저장에 실패했습니다.',
       );
     } finally {
       setSubmitting(false);
@@ -143,7 +157,7 @@ export function MatchForm({
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled">
-        <FormSection title="경기일" colors={colors}>
+        <FormRow label="경기일" colors={colors}>
           <TextInput
             style={[
               styles.input,
@@ -154,9 +168,9 @@ export function MatchForm({
             placeholder="YYYY-MM-DD"
             placeholderTextColor={colors.muted}
           />
-        </FormSection>
+        </FormRow>
 
-        <FormSection title="경기유형" colors={colors}>
+        <FormRow label="경기유형" colors={colors}>
           <ChipSelector
             options={(Object.keys(MATCH_TYPE_LABELS) as MatchType[]).map((value) => ({
               value,
@@ -166,11 +180,11 @@ export function MatchForm({
             onChange={setMatchType}
             colors={colors}
           />
-        </FormSection>
+        </FormRow>
 
-        <FormSection title="코트종류" colors={colors}>
+        <FormRow label="코트종류" colors={colors}>
           <ChipSelector
-            options={(Object.keys(COURT_TYPE_LABELS) as CourtType[]).map((value) => ({
+            options={COURT_TYPE_FORM_OPTIONS.map((value) => ({
               value,
               label: COURT_TYPE_LABELS[value],
             }))}
@@ -178,9 +192,9 @@ export function MatchForm({
             onChange={setCourtType}
             colors={colors}
           />
-        </FormSection>
+        </FormRow>
 
-        <FormSection title="경기장" colors={colors}>
+        <FormRow label="경기장" colors={colors}>
           <SuggestTextInput
             label=""
             value={venueName}
@@ -188,99 +202,50 @@ export function MatchForm({
             onFetchSuggestions={loadVenueSuggestions}
             colors={colors}
             placeholder="경기장 이름"
+            compact
           />
-        </FormSection>
+        </FormRow>
 
-        <FormSection title="선수" colors={colors}>
-          <SuggestTextInput
-            label="나"
-            value={myName}
-            onChange={setMyName}
-            onFetchSuggestions={loadPlayerSuggestions}
+        <FormRow label="선수" colors={colors} align="top">
+          <PlayerRosterInput
+            roster={roster}
+            onChange={setRoster}
             colors={colors}
-          />
-          {isDoubles && (
-            <SuggestTextInput
-              label="페어"
-              value={partnerName}
-              onChange={setPartnerName}
-              onFetchSuggestions={loadPlayerSuggestions}
-              colors={colors}
-            />
-          )}
-          <SuggestTextInput
-            label="상대1"
-            value={opponent1Name}
-            onChange={setOpponent1Name}
             onFetchSuggestions={loadPlayerSuggestions}
-            colors={colors}
           />
-          {isDoubles && (
-            <SuggestTextInput
-              label="상대2"
-              value={opponent2Name}
-              onChange={setOpponent2Name}
-              onFetchSuggestions={loadPlayerSuggestions}
-              colors={colors}
-            />
-          )}
-        </FormSection>
+        </FormRow>
 
-        {isDoubles && (
-          <FormSection title="포지션" colors={colors}>
-            <ChipSelector
-              options={(
-                Object.keys(POSITION_LABELS) as PositionType[]
-              ).map((value) => ({
-                value,
-                label: POSITION_LABELS[value],
-              }))}
-              value={position}
-              onChange={setPosition}
-              colors={colors}
-            />
-          </FormSection>
-        )}
+        <FormRow label="경기" colors={colors} align="top">
+          <MatchEntryEditor
+            entries={entryInputs}
+            onChange={setEntryInputs}
+            roster={roster}
+            colors={colors}
+            protectFirstEntry={isEdit}
+          />
+        </FormRow>
 
-        <FormSection title="세트 점수" colors={colors}>
-          <SetScoreEditor sets={setInputs} onChange={setSetInputs} colors={colors} />
-          <View style={[styles.resultBox, { backgroundColor: colors.card }]}>
-            <Text style={[styles.resultLabel, { color: colors.muted }]}>결과</Text>
-            <Text
+        <FormRow label="메모" colors={colors} align="top">
+          <View style={styles.memoWrap}>
+            <TextInput
               style={[
-                styles.resultValue,
-                {
-                  color: predictedResult
-                    ? predictedResult === 'win'
-                      ? colors.win
-                      : colors.loss
-                    : colors.muted,
-                },
-              ]}>
-              {predictedResult ? RESULT_LABELS[predictedResult] : '입력 중'}
-            </Text>
+                styles.memoInput,
+                { color: colors.text, borderColor: colors.muted, backgroundColor: colors.card },
+              ]}
+              value={memo}
+              onChangeText={setMemo}
+              placeholder="최대 200자"
+              placeholderTextColor={colors.muted}
+              multiline
+              maxLength={200}
+            />
+            <Text style={[styles.counter, { color: colors.muted }]}>{memo.length}/200</Text>
           </View>
-        </FormSection>
+        </FormRow>
 
-        <FormSection title="메모" colors={colors}>
-          <TextInput
-            style={[
-              styles.memoInput,
-              { color: colors.text, borderColor: colors.muted, backgroundColor: colors.card },
-            ]}
-            value={memo}
-            onChangeText={setMemo}
-            placeholder="최대 200자"
-            placeholderTextColor={colors.muted}
-            multiline
-            maxLength={200}
-          />
-          <Text style={[styles.counter, { color: colors.muted }]}>{memo.length}/200</Text>
-        </FormSection>
-
-        <FormSection title="태그" colors={colors}>
+        <FormRow label="태그" colors={colors} align="top">
           <TagInput tags={tags} onChange={setTags} colors={colors} />
-        </FormSection>
+        </FormRow>
 
         <Pressable
           onPress={handleSubmit}
@@ -292,7 +257,7 @@ export function MatchForm({
           {submitting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitText}>경기 등록</Text>
+            <Text style={styles.submitText}>{isEdit ? '수정 저장' : '경기 등록'}</Text>
           )}
         </Pressable>
       </ScrollView>
@@ -300,21 +265,21 @@ export function MatchForm({
   );
 }
 
-function FormSection({
-  title,
+function FormRow({
+  label,
   colors,
   children,
+  align = 'center',
 }: {
-  title: string;
+  label: string;
   colors: (typeof Colors)['light'];
   children: ReactNode;
+  align?: 'center' | 'top';
 }) {
   return (
-    <View style={styles.section}>
-      {title ? (
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
-      ) : null}
-      {children}
+    <View style={[styles.row, align === 'top' && styles.rowTop]}>
+      <Text style={[styles.rowLabel, { color: colors.muted }]}>{label}</Text>
+      <View style={styles.rowContent}>{children}</View>
     </View>
   );
 }
@@ -324,61 +289,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scroll: {
-    padding: 16,
-    gap: 20,
-    paddingBottom: 40,
-  },
-  section: {
+    padding: 12,
     gap: 10,
+    paddingBottom: 32,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rowTop: {
+    alignItems: 'flex-start',
+  },
+  rowLabel: {
+    width: 56,
+    fontSize: 13,
+    fontWeight: '600',
+    flexShrink: 0,
+    paddingTop: 2,
+  },
+  rowContent: {
+    flex: 1,
+    minWidth: 0,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  memoWrap: {
+    gap: 4,
   },
   memoInput: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    minHeight: 88,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    minHeight: 64,
     textAlignVertical: 'top',
   },
   counter: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'right',
   },
-  resultBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  resultLabel: {
-    fontSize: 14,
-  },
-  resultValue: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
   submitButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   submitText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
 });
