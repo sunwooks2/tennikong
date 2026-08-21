@@ -41,7 +41,6 @@ export interface Match {
   created_at: string;
   updated_at: string;
   match_games?: MatchGame[];
-  match_tags?: { tag_name: string }[];
 }
 
 export interface MonthlySummary {

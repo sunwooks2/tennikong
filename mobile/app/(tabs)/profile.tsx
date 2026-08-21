@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,26 +27,33 @@ export default function ProfileScreen() {
 
   const providerLabel = getProviderLabel(user?.app_metadata?.provider);
 
-  const handleSignOut = async () => {
+  const doSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '로그아웃에 실패했습니다.';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('오류', message);
+      }
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  const handleSignOut = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('로그아웃 하시겠습니까?')) {
+        doSignOut();
+      }
+      return;
+    }
+
     Alert.alert('로그아웃', '로그아웃 하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-      {
-        text: '로그아웃',
-        style: 'destructive',
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            await signOut();
-          } catch (error) {
-            Alert.alert(
-              '오류',
-              error instanceof Error ? error.message : '로그아웃에 실패했습니다.',
-            );
-          } finally {
-            setSigningOut(false);
-          }
-        },
-      },
+      { text: '로그아웃', style: 'destructive', onPress: doSignOut },
     ]);
   };
 
@@ -138,8 +146,6 @@ function getProviderLabel(provider?: string): string {
       return '카카오';
     case 'naver':
       return '네이버';
-    case 'apple':
-      return 'Apple';
     default:
       return 'SNS';
   }

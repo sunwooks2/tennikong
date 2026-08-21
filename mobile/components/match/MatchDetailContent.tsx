@@ -9,8 +9,9 @@ import {
 import Colors from '@/constants/Colors';
 import type { Match, MatchResult } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
-import { MY_ROSTER_LABEL, type PlayerRoster, getRosterSlotDisplayName, toLineupDisplayName } from '@/utils/matchForm';
+import { MY_ROSTER_LABEL, ROSTER_KEYS, getRosterSlotDisplayName, toLineupDisplayName } from '@/utils/matchForm';
 import { sortRegistrationMatches } from '@/utils/matchDisplay';
+import { buildRoster } from '@/utils/matchToForm';
 import { getMatchGames } from '@/utils/matchNormalize';
 import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
 
@@ -21,6 +22,7 @@ interface MatchDetailContentProps {
 
 interface MatchDisplayEntry {
   entryNumber: number;
+  matchType: Match['match_type'];
   ourFore: string;
   ourBack: string;
   opponentFore: string;
@@ -37,6 +39,7 @@ function buildMatchDisplayEntries(matches: Match[]): MatchDisplayEntry[] {
 
     return {
       entryNumber: index + 1,
+      matchType: match.match_type,
       ourFore: toLineupDisplayName(match.our_fore_name, match.my_name, '-'),
       ourBack: toLineupDisplayName(match.our_back_name, match.my_name, '-'),
       opponentFore: match.opponent_fore_name?.trim() || '-',
@@ -51,19 +54,12 @@ function buildMatchDisplayEntries(matches: Match[]): MatchDisplayEntry[] {
 export function MatchDetailContent({ matches, colors }: MatchDetailContentProps) {
   const orderedMatches = sortRegistrationMatches(matches);
   const match = orderedMatches[0];
-  const tags = match.match_tags ?? [];
   const entries = buildMatchDisplayEntries(orderedMatches);
-  const roster: PlayerRoster = {
-    player1: match.my_name,
-    player2: match.partner_name ?? '',
-    player3: match.opponent1_name,
-    player4: match.opponent2_name ?? '',
-  };
+  const roster = buildRoster(orderedMatches);
   const rosterNames = [
     MY_ROSTER_LABEL,
-    getRosterSlotDisplayName(roster, 'player2'),
-    getRosterSlotDisplayName(roster, 'player3'),
-    getRosterSlotDisplayName(roster, 'player4'),
+    ...ROSTER_KEYS.slice(1).map((key) => getRosterSlotDisplayName(roster, key)),
+    ...roster.extraPlayers.filter((name) => name.trim().length > 0),
   ];
 
   return (
@@ -98,10 +94,6 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
         </Text>
       </FormRow>
 
-      <FormRow label="경기유형" colors={colors}>
-        <ReadonlyChip label={MATCH_TYPE_LABELS[match.match_type]} colors={colors} />
-      </FormRow>
-
       <FormRow label="코트종류" colors={colors}>
         <ReadonlyChip label={COURT_TYPE_LABELS[match.court_type]} colors={colors} />
       </FormRow>
@@ -125,20 +117,6 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
           <Text style={[styles.memo, { color: colors.text }]}>{match.memo}</Text>
         </FormRow>
       ) : null}
-
-      {tags.length > 0 ? (
-        <FormRow label="태그" colors={colors} align="top">
-          <View style={styles.tags}>
-            {tags.map((tag) => (
-              <View
-                key={tag.tag_name}
-                style={[styles.tag, { backgroundColor: `${colors.tint}22` }]}>
-                <Text style={[styles.tagText, { color: colors.tint }]}>#{tag.tag_name}</Text>
-              </View>
-            ))}
-          </View>
-        </FormRow>
-      ) : null}
     </View>
   );
 }
@@ -158,29 +136,44 @@ function MatchEntryCard({
 
   return (
     <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
-      <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
+      <View style={styles.entryTypeRow}>
+        <ReadonlyChip label={MATCH_TYPE_LABELS[entry.matchType]} colors={colors} />
+      </View>
 
-      <View style={styles.lineupArea}>
-        <View style={styles.slots}>
-          <PlayerSlotDisplay positionLabel="포" value={entry.ourFore} colors={colors} />
-          <PlayerSlotDisplay positionLabel="백" value={entry.ourBack} colors={colors} />
-        </View>
-
-        <Text style={[styles.vs, { color: colors.muted }]}>vs</Text>
-
-        <View style={styles.slots}>
-          <PlayerSlotDisplay positionLabel="포" value={entry.opponentFore} colors={colors} />
-          <PlayerSlotDisplay positionLabel="백" value={entry.opponentBack} colors={colors} />
+      <View style={styles.entryMainRow}>
+        <View style={styles.indexSpacer} />
+        <View style={styles.teamLabelArea}>
+          <Text style={[styles.teamLabel, { color: colors.muted }]}>우리팀</Text>
+          <View style={styles.vsSpacer} />
+          <Text style={[styles.teamLabel, { color: colors.muted }]}>상대팀</Text>
         </View>
       </View>
 
-      <View style={[styles.scoreArea, { borderLeftColor: colors.muted }]}>
-        <Text style={[styles.scoreText, { color: colors.text }]}>{scoreText}</Text>
-        {entry.result ? (
-          <Text style={[styles.result, { color: resultColor }]}>
-            {getResultLabel(entry.result)}
-          </Text>
-        ) : null}
+      <View style={styles.entryMainRow}>
+        <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
+
+        <View style={styles.lineupArea}>
+          <View style={styles.slots}>
+            <PlayerSlotDisplay positionLabel="포" value={entry.ourFore} colors={colors} />
+            <PlayerSlotDisplay positionLabel="백" value={entry.ourBack} colors={colors} />
+          </View>
+
+          <Text style={[styles.vs, { color: colors.muted }]}>vs</Text>
+
+          <View style={styles.slots}>
+            <PlayerSlotDisplay positionLabel="포" value={entry.opponentFore} colors={colors} />
+            <PlayerSlotDisplay positionLabel="백" value={entry.opponentBack} colors={colors} />
+          </View>
+        </View>
+
+        <View style={[styles.scoreArea, { borderLeftColor: colors.muted }]}>
+          <Text style={[styles.scoreText, { color: colors.text }]}>{scoreText}</Text>
+          {entry.result ? (
+            <Text style={[styles.result, { color: resultColor }]}>
+              {getResultLabel(entry.result)}
+            </Text>
+          ) : null}
+        </View>
       </View>
     </View>
   );
@@ -326,8 +319,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   entryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 8,
@@ -335,12 +327,43 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
   },
+  entryTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  entryMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   entryIndex: {
     width: 14,
     flexShrink: 0,
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  indexSpacer: {
+    width: 14,
+    flexShrink: 0,
+  },
+  teamLabelArea: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  teamLabel: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  vsSpacer: {
+    width: 20,
+    flexShrink: 0,
   },
   lineupArea: {
     flex: 1,
@@ -399,19 +422,5 @@ const styles = StyleSheet.create({
   memo: {
     fontSize: 14,
     lineHeight: 20,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tag: {
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  tagText: {
-    fontSize: 13,
-    fontWeight: '600',
   },
 });

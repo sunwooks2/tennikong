@@ -1,11 +1,14 @@
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { PlayerSlotSelect } from '@/components/match/PlayerSlotSelect';
+import { ScoreStepper } from '@/components/match/ScoreStepper';
+import { SelectBox } from '@/components/match/SelectBox';
 import { Text } from '@/components/Themed';
+import { MATCH_TYPE_FORM_OPTIONS, MATCH_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
 import type { MatchEntryInput, PlayerRoster } from '@/utils/matchForm';
-import { getSelectableRosterOptions } from '@/utils/matchForm';
-import { getGameResultFromInputs } from '@/utils/matchResult';
+import { MY_ROSTER_LABEL, getSelectableRosterOptions } from '@/utils/matchForm';
+import { calculateGameResult } from '@/utils/matchResult';
 import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
 
 interface MatchEntryEditorProps {
@@ -19,6 +22,11 @@ interface MatchEntryEditorProps {
 
 const LINEUP_FIELDS = ['our_fore', 'our_back', 'opponent_fore', 'opponent_back'] as const;
 type LineupField = (typeof LINEUP_FIELDS)[number];
+
+const MATCH_TYPE_OPTIONS = MATCH_TYPE_FORM_OPTIONS.map((value) => ({
+  value,
+  label: MATCH_TYPE_LABELS[value],
+}));
 
 export function MatchEntryEditor({
   entries,
@@ -56,6 +64,7 @@ export function MatchEntryEditor({
       ...entries,
       {
         entry_number: entries.length + 1,
+        match_type: last?.match_type ?? 'mens_doubles',
         our_fore: last?.our_fore ?? '',
         our_back: last?.our_back ?? '',
         opponent_fore: last?.opponent_fore ?? '',
@@ -78,9 +87,22 @@ export function MatchEntryEditor({
   return (
     <View style={styles.container}>
       {entries.map((entry, index) => {
-        const result = getGameResultFromInputs(entry.my_score, entry.opponent_score);
-        const resultColor = result ? getResultColor(result, colors) : colors.muted;
+        const displayedMyScore = Number.parseInt(entry.my_score, 10) || 0;
+        const displayedOpponentScore = Number.parseInt(entry.opponent_score, 10) || 0;
+        const result = calculateGameResult(displayedMyScore, displayedOpponentScore);
+        const resultColor = getResultColor(result, colors);
         const canRemove = entries.length > 1 && !(protectFirstEntry && index === 0);
+
+        // 우리팀(포/백) 중 하나는 반드시 '나'여야 하고, 상대팀에는 '나'를 선택할 수 없다.
+        const ourForeOptions =
+          entry.our_back === MY_ROSTER_LABEL
+            ? rosterOptions.filter((name) => name !== MY_ROSTER_LABEL)
+            : [MY_ROSTER_LABEL];
+        const ourBackOptions =
+          entry.our_fore === MY_ROSTER_LABEL
+            ? rosterOptions.filter((name) => name !== MY_ROSTER_LABEL)
+            : [MY_ROSTER_LABEL];
+        const opponentOptions = rosterOptions.filter((name) => name !== MY_ROSTER_LABEL);
 
         return (
           <View key={entry.entry_number} style={[styles.card, { backgroundColor: colors.card }]}>
@@ -93,75 +115,103 @@ export function MatchEntryEditor({
               </Pressable>
             ) : null}
 
-            <Text style={[styles.index, { color: colors.muted }]}>{index + 1}</Text>
+            <View style={styles.entryTypeRow}>
+              <Text style={[styles.index, { color: colors.muted }]}>{index + 1}</Text>
 
-            <View style={styles.lineupArea}>
-              <View style={styles.slots}>
-                <PlayerSlotSelect
-                  positionLabel="포"
-                  value={entry.our_fore}
-                  options={rosterOptions}
-                  onChange={(value) => updateLineupSlot(index, 'our_fore', value)}
-                  colors={colors}
-                />
-                <PlayerSlotSelect
-                  positionLabel="백"
-                  value={entry.our_back}
-                  options={rosterOptions}
-                  onChange={(value) => updateLineupSlot(index, 'our_back', value)}
-                  colors={colors}
-                />
-              </View>
-
-              <Text style={[styles.vs, { color: colors.muted }]}>vs</Text>
-
-              <View style={styles.slots}>
-                <PlayerSlotSelect
-                  positionLabel="포"
-                  value={entry.opponent_fore}
-                  options={rosterOptions}
-                  onChange={(value) => updateLineupSlot(index, 'opponent_fore', value)}
-                  colors={colors}
-                />
-                <PlayerSlotSelect
-                  positionLabel="백"
-                  value={entry.opponent_back}
-                  options={rosterOptions}
-                  onChange={(value) => updateLineupSlot(index, 'opponent_back', value)}
+              <View style={styles.entryTypeSelect}>
+                <SelectBox
+                  options={MATCH_TYPE_OPTIONS}
+                  value={entry.match_type}
+                  onChange={(value) => updateEntry(index, { match_type: value })}
                   colors={colors}
                 />
               </View>
             </View>
 
-            <View style={[styles.scoreArea, { borderLeftColor: colors.muted }]}>
-              <TextInput
-                style={[styles.scoreInput, { color: colors.text, borderColor: colors.muted }]}
-                value={entry.my_score}
-                onChangeText={(value) =>
-                  updateEntry(index, { my_score: value.replace(/[^0-9]/g, '') })
-                }
-                keyboardType="number-pad"
-                maxLength={2}
-                placeholder="0"
-                placeholderTextColor={colors.muted}
-              />
-              <Text style={[styles.colon, { color: colors.text }]}>:</Text>
-              <TextInput
-                style={[styles.scoreInput, { color: colors.text, borderColor: colors.muted }]}
-                value={entry.opponent_score}
-                onChangeText={(value) =>
-                  updateEntry(index, { opponent_score: value.replace(/[^0-9]/g, '') })
-                }
-                keyboardType="number-pad"
-                maxLength={2}
-                placeholder="0"
-                placeholderTextColor={colors.muted}
-              />
-              {result ? (
-                <Text style={[styles.result, { color: resultColor }]}>
-                  {getResultLabel(result)}
-                </Text>
-              ) : null}
+            <View style={styles.entryMainRow}>
+              <View style={styles.indexSpacer} />
+
+              <View style={styles.lineupArea}>
+                <View style={styles.teamGroup}>
+                  <View style={styles.teamLabelWrap}>
+                    <Text style={[styles.teamLabelInline, { color: colors.muted }]}>{'우\n리\n팀'}</Text>
+                  </View>
+                  <View style={styles.slots}>
+                    <PlayerSlotSelect
+                      positionLabel="포"
+                      value={entry.our_fore}
+                      options={ourForeOptions}
+                      onChange={(value) => updateLineupSlot(index, 'our_fore', value)}
+                      colors={colors}
+                    />
+                    <PlayerSlotSelect
+                      positionLabel="백"
+                      value={entry.our_back}
+                      options={ourBackOptions}
+                      onChange={(value) => updateLineupSlot(index, 'our_back', value)}
+                      colors={colors}
+                    />
+                  </View>
+                </View>
+
+                <Text style={[styles.lineupColon, { color: colors.muted }]}>:</Text>
+
+                <View style={styles.teamGroup}>
+                  <View style={styles.teamLabelWrap}>
+                    <Text style={[styles.teamLabelInline, { color: colors.muted }]}>{'상\n대\n팀'}</Text>
+                  </View>
+                  <View style={styles.slots}>
+                    <PlayerSlotSelect
+                      positionLabel="포"
+                      value={entry.opponent_fore}
+                      options={opponentOptions}
+                      onChange={(value) => updateLineupSlot(index, 'opponent_fore', value)}
+                      colors={colors}
+                    />
+                    <PlayerSlotSelect
+                      positionLabel="백"
+                      value={entry.opponent_back}
+                      options={opponentOptions}
+                      onChange={(value) => updateLineupSlot(index, 'opponent_back', value)}
+                      colors={colors}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.entryMainRow}>
+              <View style={styles.indexSpacer} />
+
+              <View style={styles.scoreArea}>
+                <View style={styles.scoreCell}>
+                  <View style={styles.teamLabelWrap} />
+                  <View style={styles.scoreStepperWrap}>
+                    <ScoreStepper
+                      value={entry.my_score}
+                      onChange={(value) => updateEntry(index, { my_score: value })}
+                      colors={colors}
+                    />
+                  </View>
+                </View>
+
+                <Text style={[styles.scoreColon, { color: colors.text }]}>:</Text>
+
+                <View style={styles.scoreCell}>
+                  <View style={styles.teamLabelWrap} />
+                  <View style={styles.scoreStepperWrap}>
+                    <ScoreStepper
+                      value={entry.opponent_score}
+                      onChange={(value) => updateEntry(index, { opponent_score: value })}
+                      colors={colors}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <Text style={[styles.result, { color: resultColor }]}>
+                {getResultLabel(result)}
+              </Text>
             </View>
           </View>
         );
@@ -183,15 +233,28 @@ const styles = StyleSheet.create({
   },
   card: {
     position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 8,
     paddingRight: 22,
-    gap: 6,
+    gap: 8,
     width: '100%',
     overflow: 'hidden',
+  },
+  entryTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  entryTypeSelect: {
+    flex: 1,
+    minWidth: 0,
+  },
+  entryMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   index: {
     width: 14,
@@ -200,6 +263,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
+  indexSpacer: {
+    width: 14,
+    flexShrink: 0,
+  },
   lineupArea: {
     flex: 1,
     minWidth: 0,
@@ -207,46 +274,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  teamGroup: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  teamLabelWrap: {
+    width: 14,
+    flexShrink: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  teamLabelInline: {
+    fontSize: 8,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 9,
+  },
   slots: {
     flex: 1,
     minWidth: 0,
     flexDirection: 'row',
     gap: 4,
   },
-  vs: {
+  lineupColon: {
     flexShrink: 0,
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '700',
     paddingHorizontal: 2,
   },
   scoreArea: {
-    flexShrink: 0,
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingLeft: 8,
-    marginLeft: 2,
-    borderLeftWidth: StyleSheet.hairlineWidth,
   },
-  scoreInput: {
-    width: 32,
-    height: 32,
-    borderWidth: 1,
-    borderRadius: 8,
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '700',
-    padding: 0,
+  scoreCell: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
-  colon: {
-    fontSize: 14,
+  scoreStepperWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  scoreColon: {
+    flexShrink: 0,
+    fontSize: 13,
     fontWeight: '700',
   },
   result: {
+    flexShrink: 0,
     fontSize: 11,
     fontWeight: '700',
-    marginLeft: 2,
+    marginLeft: 4,
     minWidth: 14,
+    textAlign: 'center',
   },
   removeBtn: {
     position: 'absolute',

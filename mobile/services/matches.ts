@@ -2,14 +2,13 @@ import { supabase } from '@/lib/supabase';
 import type {
   CourtType,
   Match,
-  MatchType,
   MonthlySummary,
 } from '@/types/database';
 import { getMonthRange } from '@/utils/date';
 import { getRegistrationFingerprint, sortRegistrationMatches } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
 import type { ParsedMatchEntry } from '@/utils/matchForm';
-import { deriveMyPosition, isGuestPlaceholderName } from '@/utils/matchForm';
+import { deriveMatchParticipants, deriveMyPosition, isGuestPlaceholderName } from '@/utils/matchForm';
 
 const MATCH_LIST_SELECT = `
   id,
@@ -60,27 +59,22 @@ const MATCH_DETAIL_SELECT = `
   registration_order,
   created_at,
   updated_at,
-  match_games (game_number, result, my_score, opponent_score),
-  match_tags (tag_name)
+  match_games (game_number, result, my_score, opponent_score)
 `;
 
 export interface CreateMatchesPayload {
   match_date: string;
-  match_type: MatchType;
   court_type: CourtType;
   venue_name?: string;
   memo?: string;
-  tags: string[];
   entries: ParsedMatchEntry[];
 }
 
 export interface UpdateMatchPayload {
   match_date: string;
-  match_type: MatchType;
   court_type: CourtType;
   venue_name?: string;
   memo?: string;
-  tags: string[];
   entry: ParsedMatchEntry;
   registration_order?: number;
 }
@@ -244,6 +238,7 @@ function collectAliasNames(
     names.add(entry.roster.player2);
     names.add(entry.roster.player3);
     names.add(entry.roster.player4);
+    for (const extra of entry.roster.extraPlayers) names.add(extra);
     names.add(entry.our_fore);
     names.add(entry.our_back);
     names.add(entry.opponent_fore);
@@ -271,17 +266,18 @@ async function upsertAliases(
 
 function buildMatchRow(userId: string, payload: CreateMatchesPayload, entry: ParsedMatchEntry) {
   const { roster } = entry;
+  const participants = deriveMatchParticipants(roster, entry);
 
   return {
     user_id: userId,
     match_date: payload.match_date,
-    match_type: payload.match_type,
+    match_type: entry.match_type,
     court_type: payload.court_type,
     venue_name: payload.venue_name?.trim() || null,
-    my_name: roster.player1,
-    partner_name: roster.player2,
-    opponent1_name: roster.player3,
-    opponent2_name: roster.player4,
+    my_name: participants.my_name,
+    partner_name: participants.partner_name,
+    opponent1_name: participants.opponent1_name,
+    opponent2_name: participants.opponent2_name,
     our_fore_name: entry.our_fore,
     our_back_name: entry.our_back,
     opponent_fore_name: entry.opponent_fore,
@@ -321,16 +317,6 @@ export async function createMatches(
 
       if (error) throw error;
       createdIds.push(match.id);
-
-      if (payload.tags.length > 0) {
-        const { error: tagsError } = await supabase.from('match_tags').insert(
-          payload.tags.map((tag) => ({
-            match_id: match.id,
-            tag_name: tag,
-          })),
-        );
-        if (tagsError) throw tagsError;
-      }
     }
 
     await upsertAliases(userId, payload.venue_name, payload.entries);
@@ -485,18 +471,19 @@ export async function deleteMatch(id: string) {
 export async function updateMatch(matchId: string, payload: UpdateMatchPayload) {
   const { entry } = payload;
   const { roster } = entry;
+  const participants = deriveMatchParticipants(roster, entry);
 
   const { error } = await supabase
     .from('matches')
     .update({
       match_date: payload.match_date,
-      match_type: payload.match_type,
+      match_type: entry.match_type,
       court_type: payload.court_type,
       venue_name: payload.venue_name?.trim() || null,
-      my_name: roster.player1,
-      partner_name: roster.player2,
-      opponent1_name: roster.player3,
-      opponent2_name: roster.player4,
+      my_name: participants.my_name,
+      partner_name: participants.partner_name,
+      opponent1_name: participants.opponent1_name,
+      opponent2_name: participants.opponent2_name,
       our_fore_name: entry.our_fore,
       our_back_name: entry.our_back,
       opponent_fore_name: entry.opponent_fore,
@@ -515,22 +502,6 @@ export async function updateMatch(matchId: string, payload: UpdateMatchPayload) 
   if (error) throw error;
 
   await supabase.from('match_games').delete().eq('match_id', matchId);
-
-  const { error: deleteTagsError } = await supabase
-    .from('match_tags')
-    .delete()
-    .eq('match_id', matchId);
-  if (deleteTagsError) throw deleteTagsError;
-
-  if (payload.tags.length > 0) {
-    const { error: tagsError } = await supabase.from('match_tags').insert(
-      payload.tags.map((tag) => ({
-        match_id: matchId,
-        tag_name: tag,
-      })),
-    );
-    if (tagsError) throw tagsError;
-  }
 
   return { id: matchId };
 }

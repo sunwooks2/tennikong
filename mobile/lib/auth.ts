@@ -1,15 +1,24 @@
 import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import * as WebBrowser from 'expo-web-browser';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Platform } from 'react-native';
-import type { Provider } from '@supabase/supabase-js';
+import type { Provider, Session } from '@supabase/supabase-js';
 
 import { supabase } from '@/lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
-export type SocialProvider = 'google' | 'kakao' | 'apple' | 'naver';
+export type SocialProvider = 'google' | 'kakao' | 'naver';
+
+export function isNewUser(session: Session | null | undefined): boolean {
+  const user = session?.user;
+  if (!user?.created_at) return false;
+
+  const createdAt = new Date(user.created_at).getTime();
+  const lastSignInAt = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt;
+
+  return Math.abs(lastSignInAt - createdAt) < 10_000;
+}
 
 export function getAuthRedirectUri(): string {
   return makeRedirectUri({
@@ -64,7 +73,7 @@ export async function createSessionFromUrl(url: string) {
   return null;
 }
 
-async function signInWithOAuthProvider(provider: Provider | 'kakao') {
+async function signInWithOAuthProvider(provider: Provider) {
   const redirectTo = getAuthRedirectUri();
 
   if (Platform.OS === 'web') {
@@ -79,7 +88,7 @@ async function signInWithOAuthProvider(provider: Provider | 'kakao') {
       },
     });
     if (error) throw error;
-    return;
+    return null;
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -96,48 +105,22 @@ async function signInWithOAuthProvider(provider: Provider | 'kakao') {
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 
   if (result.type === 'success') {
-    await createSessionFromUrl(result.url);
-    return;
+    return createSessionFromUrl(result.url);
   }
 
   if (result.type === 'cancel' || result.type === 'dismiss') {
     throw new Error('로그인이 취소되었습니다.');
   }
+
+  return null;
 }
 
 export async function signInWithGoogle() {
-  await signInWithOAuthProvider('google');
+  return signInWithOAuthProvider('google');
 }
 
 export async function signInWithKakao() {
-  await signInWithOAuthProvider('kakao');
-}
-
-export async function signInWithApple() {
-  if (Platform.OS === 'ios') {
-    const available = await AppleAuthentication.isAvailableAsync();
-    if (available) {
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (!credential.identityToken) {
-        throw new Error('Apple 로그인 토큰을 받지 못했습니다.');
-      }
-
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'apple',
-        token: credential.identityToken,
-      });
-      if (error) throw error;
-      return;
-    }
-  }
-
-  await signInWithOAuthProvider('apple');
+  return signInWithOAuthProvider('kakao');
 }
 
 export async function signInWithNaver() {
@@ -161,7 +144,7 @@ export async function signInWithNaver() {
       sessionStorage.setItem('naver_auth_pending', '1');
     }
     window.location.href = authUrl;
-    return;
+    return null;
   }
 
   const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
@@ -186,11 +169,12 @@ export async function signInWithNaver() {
     throw new Error(data?.error ?? '네이버 로그인에 실패했습니다.');
   }
 
-  const { error: sessionError } = await supabase.auth.setSession({
+  const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
     access_token: data.access_token,
     refresh_token: data.refresh_token,
   });
   if (sessionError) throw sessionError;
+  return sessionData.session;
 }
 
 export async function signOut() {

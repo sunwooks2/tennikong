@@ -10,21 +10,14 @@ import {
   View,
 } from 'react-native';
 
-import { ChipSelector } from '@/components/match/ChipSelector';
 import { MatchEntryEditor } from '@/components/match/MatchEntryEditor';
 import { PlayerRosterInput } from '@/components/match/PlayerRosterInput';
-import { SuggestTextInput } from '@/components/match/SuggestTextInput';
-import { TagInput } from '@/components/match/TagInput';
+import { SelectBox } from '@/components/match/SelectBox';
 import { Text } from '@/components/Themed';
-import { COURT_TYPE_FORM_OPTIONS, COURT_TYPE_LABELS, MATCH_TYPE_LABELS } from '@/constants/labels';
+import { COURT_TYPE_FORM_OPTIONS, COURT_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
-import type { CourtType, MatchType } from '@/types/database';
-import {
-  createMatches,
-  fetchPlayerSuggestions,
-  fetchVenueSuggestions,
-  updateRegistration,
-} from '@/services/matches';
+import type { CourtType } from '@/types/database';
+import { createMatches, fetchPlayerSuggestions, updateRegistration } from '@/services/matches';
 import {
   createDefaultRoster,
   createEmptyEntry,
@@ -45,11 +38,9 @@ interface MatchFormProps {
   registrationId?: string | null;
   initialValues?: {
     matchDate?: string;
-    matchType?: MatchType;
     courtType?: CourtType;
     venueName?: string;
     memo?: string;
-    tags?: string[];
     roster?: PlayerRoster;
     entryInputs?: MatchEntryInput[];
   };
@@ -71,18 +62,14 @@ export function MatchForm({
   const [matchDate, setMatchDate] = useState(
     initialValues?.matchDate ?? initialDate ?? toDateKey(new Date()),
   );
-  const [matchType, setMatchType] = useState<MatchType>(
-    initialValues?.matchType ?? 'mens_doubles',
-  );
   const [courtType, setCourtType] = useState<CourtType>(initialValues?.courtType ?? 'hard');
   const [venueName, setVenueName] = useState(initialValues?.venueName ?? '');
   const [memo, setMemo] = useState(initialValues?.memo ?? '');
-  const [tags, setTags] = useState<string[]>(initialValues?.tags ?? []);
   const [roster, setRoster] = useState<PlayerRoster>(
     initialValues?.roster ?? createDefaultRoster(defaultMyName),
   );
   const [entryInputs, setEntryInputs] = useState<MatchEntryInput[]>(
-    initialValues?.entryInputs ?? [createEmptyEntry(1)],
+    initialValues?.entryInputs ?? [createEmptyEntry(1, 'mens_doubles')],
   );
   const [submitting, setSubmitting] = useState(false);
 
@@ -95,11 +82,6 @@ export function MatchForm({
       );
     }
   }, [defaultMyName, isEdit]);
-
-  const loadVenueSuggestions = useCallback(async (query: string) => {
-    const { data } = await fetchVenueSuggestions(query);
-    return (data ?? []).map((row) => row.name);
-  }, []);
 
   const loadPlayerSuggestions = useCallback(async (query: string) => {
     const { data } = await fetchPlayerSuggestions(query);
@@ -122,11 +104,9 @@ export function MatchForm({
     const entries = parseEntries(roster, entryInputs, defaultMyName);
     const shared = {
       match_date: matchDate,
-      match_type: matchType,
       court_type: courtType,
       venue_name: venueName,
       memo,
-      tags,
     };
 
     setSubmitting(true);
@@ -170,20 +150,17 @@ export function MatchForm({
           />
         </FormRow>
 
-        <FormRow label="경기유형" colors={colors}>
-          <ChipSelector
-            options={(Object.keys(MATCH_TYPE_LABELS) as MatchType[]).map((value) => ({
-              value,
-              label: MATCH_TYPE_LABELS[value],
-            }))}
-            value={matchType}
-            onChange={setMatchType}
+        <FormRow label="선수" colors={colors} align="top">
+          <PlayerRosterInput
+            roster={roster}
+            onChange={setRoster}
             colors={colors}
+            onFetchSuggestions={loadPlayerSuggestions}
           />
         </FormRow>
 
         <FormRow label="코트종류" colors={colors}>
-          <ChipSelector
+          <SelectBox
             options={COURT_TYPE_FORM_OPTIONS.map((value) => ({
               value,
               label: COURT_TYPE_LABELS[value],
@@ -191,27 +168,6 @@ export function MatchForm({
             value={courtType}
             onChange={setCourtType}
             colors={colors}
-          />
-        </FormRow>
-
-        <FormRow label="경기장" colors={colors}>
-          <SuggestTextInput
-            label=""
-            value={venueName}
-            onChange={setVenueName}
-            onFetchSuggestions={loadVenueSuggestions}
-            colors={colors}
-            placeholder="경기장 이름"
-            compact
-          />
-        </FormRow>
-
-        <FormRow label="선수" colors={colors} align="top">
-          <PlayerRosterInput
-            roster={roster}
-            onChange={setRoster}
-            colors={colors}
-            onFetchSuggestions={loadPlayerSuggestions}
           />
         </FormRow>
 
@@ -241,10 +197,6 @@ export function MatchForm({
             />
             <Text style={[styles.counter, { color: colors.muted }]}>{memo.length}/200</Text>
           </View>
-        </FormRow>
-
-        <FormRow label="태그" colors={colors} align="top">
-          <TagInput tags={tags} onChange={setTags} colors={colors} />
         </FormRow>
 
         <Pressable
@@ -302,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   rowLabel: {
-    width: 56,
+    width: 64,
     fontSize: 13,
     fontWeight: '600',
     flexShrink: 0,

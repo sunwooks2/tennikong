@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Platform, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Text, View } from '@/components/Themed';
-import { handleAuthCallbackUrl } from '@/lib/auth';
+import { handleAuthCallbackUrl, isNewUser } from '@/lib/auth';
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
@@ -27,11 +27,17 @@ export default function AuthCallbackScreen() {
           throw new Error('세션을 생성하지 못했습니다. Redirect URL 설정을 확인해 주세요.');
         }
 
+        const isFirstLogin = isNewUser(session);
+
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.history.replaceState({}, '', '/profile');
+          window.history.replaceState({}, '', '/');
         }
 
-        router.replace('/(tabs)/profile');
+        if (isFirstLogin) {
+          router.replace({ pathname: '/(tabs)', params: { welcome: '1' } });
+        } else {
+          router.replace('/(tabs)');
+        }
       } catch (error) {
         const text = error instanceof Error ? error.message : '로그인에 실패했습니다.';
         console.error('Auth callback error:', error);

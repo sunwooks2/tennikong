@@ -30,7 +30,7 @@ export function PlayerSlotSelect({
         <Text
           style={[styles.slotValue, { color: value ? colors.text : colors.muted }]}
           numberOfLines={1}>
-          {value || '선택'}
+          {value}
         </Text>
       </Pressable>
 

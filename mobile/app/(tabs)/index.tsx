@@ -1,6 +1,8 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -8,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { BeanIcon } from '@/components/brand/BeanIcon';
 import { StreakBadge } from '@/components/calendar/StreakBadge';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { MatchDayList } from '@/components/calendar/MatchDayList';
@@ -22,9 +25,18 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ welcome?: string }>();
+  const [showWelcome, setShowWelcome] = useState(params.welcome === '1');
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { isAuthenticated, loading: sessionLoading } = useSession();
+
+  useEffect(() => {
+    if (params.welcome === '1') {
+      router.setParams({ welcome: undefined });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const {
     year,
@@ -47,6 +59,29 @@ export default function CalendarScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Modal
+        visible={showWelcome}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWelcome(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <BeanIcon size={56} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              테니콩에 오신 걸 환영해요!
+            </Text>
+            <Text style={[styles.modalDesc, { color: colors.muted }]}>
+              경기를 기록하고{'\n'}나만의 테니스 성장을 확인해보세요.
+            </Text>
+            <Pressable
+              style={[styles.modalButton, { backgroundColor: colors.tint }]}
+              onPress={() => setShowWelcome(false)}>
+              <Text style={styles.modalButtonText}>시작하기</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -154,5 +189,43 @@ const styles = StyleSheet.create({
   bannerLink: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    gap: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  modalDesc: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalButton: {
+    marginTop: 10,
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

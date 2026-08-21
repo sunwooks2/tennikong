@@ -8,16 +8,15 @@ export interface PlayerRoster {
   player2: string;
   player3: string;
   player4: string;
+  /** 기본 4명 외에 추가로 등록한 선수 */
+  extraPlayers: string[];
 }
 
-export const ROSTER_KEYS: (keyof PlayerRoster)[] = [
-  'player1',
-  'player2',
-  'player3',
-  'player4',
-];
+export type BaseRosterKey = 'player1' | 'player2' | 'player3' | 'player4';
 
-const ROSTER_SLOT_DEFAULTS: Record<keyof PlayerRoster, string | null> = {
+export const ROSTER_KEYS: BaseRosterKey[] = ['player1', 'player2', 'player3', 'player4'];
+
+const ROSTER_SLOT_DEFAULTS: Record<BaseRosterKey, string | null> = {
   player1: null,
   player2: '선수1',
   player3: '선수2',
@@ -33,6 +32,7 @@ export function isGuestPlaceholderName(name: string): boolean {
 
 export interface MatchEntryInput {
   entry_number: number;
+  match_type: MatchType;
   our_fore: string;
   our_back: string;
   opponent_fore: string;
@@ -43,6 +43,7 @@ export interface MatchEntryInput {
 
 export interface ParsedMatchEntry {
   roster: PlayerRoster;
+  match_type: MatchType;
   our_fore: string;
   our_back: string;
   opponent_fore: string;
@@ -58,12 +59,13 @@ export function createDefaultRoster(defaultMyName: string): PlayerRoster {
     player2: '',
     player3: '',
     player4: '',
+    extraPlayers: [],
   };
 }
 
 export function getRosterSlotDisplayName(
   roster: PlayerRoster,
-  key: keyof PlayerRoster,
+  key: BaseRosterKey,
 ): string {
   if (key === 'player1') {
     return roster.player1.trim() ? MY_ROSTER_LABEL : '';
@@ -107,8 +109,11 @@ export function getSelectableRosterOptions(
   excluded: string[] = [],
 ): string[] {
   const excludedSet = new Set(excluded.map((name) => name.trim()).filter(Boolean));
-  return ROSTER_KEYS.map((key) => getRosterSlotDisplayName(roster, key))
-    .filter((name) => name.length > 0 && !excludedSet.has(name));
+  const baseNames = ROSTER_KEYS.map((key) => getRosterSlotDisplayName(roster, key));
+  const extraNames = roster.extraPlayers.map((name) => name.trim()).filter(Boolean);
+  return [...new Set([...baseNames, ...extraNames])].filter(
+    (name) => name.length > 0 && !excludedSet.has(name),
+  );
 }
 
 export function resolveRosterForSave(
@@ -120,6 +125,7 @@ export function resolveRosterForSave(
     player2: roster.player2.trim() || '선수1',
     player3: roster.player3.trim() || '선수2',
     player4: roster.player4.trim() || '선수3',
+    extraPlayers: roster.extraPlayers.map((name) => name.trim()).filter(Boolean),
   };
 }
 
@@ -129,9 +135,13 @@ export function getRosterNames(roster: PlayerRoster | string[]): string[] {
   return getSelectableRosterOptions(roster);
 }
 
-export function createEmptyEntry(entryNumber: number): MatchEntryInput {
+export function createEmptyEntry(
+  entryNumber: number,
+  matchType: MatchType = 'mens_doubles',
+): MatchEntryInput {
   return {
     entry_number: entryNumber,
+    match_type: matchType,
     our_fore: '',
     our_back: '',
     opponent_fore: '',
@@ -158,6 +168,7 @@ export function parseEntries(
 
     return {
       roster: resolvedRoster,
+      match_type: entry.match_type,
       our_fore: resolveLineupName(roster, entry.our_fore),
       our_back: resolveLineupName(roster, entry.our_back),
       opponent_fore: resolveLineupName(roster, entry.opponent_fore),
@@ -192,9 +203,7 @@ export function validateMatchForm(params: {
 
   if (params.memo.length > 200) return '메모는 200자 이하여야 합니다.';
 
-  const allowedOptions = new Set(
-    ROSTER_KEYS.map((key) => getRosterSlotDisplayName(params.roster, key)).filter(Boolean),
-  );
+  const allowedOptions = new Set(getSelectableRosterOptions(params.roster));
 
   if (params.entryInputs.length === 0) return '최소 1경기를 입력해 주세요.';
 
@@ -217,7 +226,7 @@ export function validateMatchForm(params: {
       entry.opponent_back,
     ]) {
       if (!allowedOptions.has(slot.trim())) {
-        return `${label}의 선수는 상단 4명 중에서 선택해 주세요.`;
+        return `${label}의 선수는 등록된 선수 중에서 선택해 주세요.`;
       }
     }
 
@@ -241,8 +250,25 @@ export function validateMatchForm(params: {
   return null;
 }
 
-export function normalizeTag(raw: string): string {
-  return raw.trim().replace(/^#+/, '');
+/** 이 경기(entry)에서 실제로 뛴 상대/파트너를 산출한다 (선수가 4명을 넘어도 정확함) */
+export function deriveMatchParticipants(
+  roster: PlayerRoster,
+  entry: Pick<ParsedMatchEntry, 'our_fore' | 'our_back' | 'opponent_fore' | 'opponent_back'>,
+): {
+  my_name: string;
+  partner_name: string | null;
+  opponent1_name: string;
+  opponent2_name: string | null;
+} {
+  const myName = resolveRosterForSave(roster).player1;
+  const partner = entry.our_fore === myName ? entry.our_back : entry.our_fore;
+
+  return {
+    my_name: myName,
+    partner_name: partner || null,
+    opponent1_name: entry.opponent_fore,
+    opponent2_name: entry.opponent_back || null,
+  };
 }
 
 export function deriveMyPosition(

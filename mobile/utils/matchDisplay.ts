@@ -32,6 +32,7 @@ export function formatRosterPlayerNames(match: Match): string {
     player2: match.partner_name ?? '',
     player3: match.opponent1_name,
     player4: match.opponent2_name ?? '',
+    extraPlayers: [],
   };
 
   return [

@@ -71,12 +71,6 @@ Expo Go 개발 시 터미널에 표시되는 `exp://...` 주소도 추가하세�
 2. [Google Cloud Console](https://console.cloud.google.com/)에서 OAuth Client ID 생성
 3. Client ID / Secret을 Supabase에 입력
 
-### Apple
-
-1. Dashboard → **Authentication** → **Providers** → **Apple** 활성화
-2. Apple Developer에서 Service ID, Key 설정
-3. iOS 실기기/EAS 빌드에서 네이티브 Apple 로그인 사용
-
 ### Kakao
 
 1. [Kakao Developers](https://developers.kakao.com/)에서 앱 생성
@@ -99,7 +93,7 @@ supabase secrets set NAVER_CLIENT_ID=your-id NAVER_CLIENT_SECRET=your-secret
 
 ## 다음 개발 단계 (Phase 1)
 
-1. ~~Supabase Auth — 구글/Apple/카카오/네이버 로그인~~ ✅
+1. ~~Supabase Auth — 구글/카카오/네이버 로그인~~ ✅
 2. ~~달력 UI + 월간 요약 데이터 연동~~ ✅
 3. 경기 등록/수정/삭제 CRUD
 4. 경기 목록 · 상세 화면

@@ -1,18 +1,11 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
-import * as AppleAuthentication from 'expo-apple-authentication';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import {
-  signInWithApple,
+  isNewUser,
   signInWithGoogle,
   signInWithKakao,
   signInWithNaver,
@@ -43,24 +36,31 @@ const PROVIDERS: {
 ];
 
 export function SocialLoginButtons({ colors, onSuccess }: SocialLoginButtonsProps) {
+  const router = useRouter();
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(null);
 
   const handleSignIn = async (provider: SocialProvider) => {
     setLoadingProvider(provider);
     try {
+      let session;
       switch (provider) {
         case 'google':
-          await signInWithGoogle();
+          session = await signInWithGoogle();
           break;
         case 'kakao':
-          await signInWithKakao();
+          session = await signInWithKakao();
           break;
         case 'naver':
-          await signInWithNaver();
+          session = await signInWithNaver();
           break;
-        case 'apple':
-          await signInWithApple();
-          break;
+      }
+
+      if (session) {
+        if (isNewUser(session)) {
+          router.replace({ pathname: '/(tabs)', params: { welcome: '1' } });
+        } else {
+          router.replace('/(tabs)');
+        }
       }
       onSuccess?.();
     } catch (error) {
@@ -97,37 +97,6 @@ export function SocialLoginButtons({ colors, onSuccess }: SocialLoginButtonsProp
           )}
         </Pressable>
       ))}
-
-      {(Platform.OS === 'ios' || Platform.OS === 'web') && (
-        <>
-          {Platform.OS === 'ios' ? (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={12}
-              style={styles.appleButton}
-              onPress={() => handleSignIn('apple')}
-            />
-          ) : (
-            <Pressable
-              onPress={() => handleSignIn('apple')}
-              disabled={loadingProvider !== null}
-              style={({ pressed }) => [
-                styles.button,
-                styles.appleWebButton,
-                { opacity: pressed || loadingProvider !== null ? 0.85 : 1 },
-              ]}>
-              {loadingProvider === 'apple' ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={[styles.buttonText, { color: '#fff' }]}>
-                  Apple로 시작하기
-                </Text>
-              )}
-            </Pressable>
-          )}
-        </>
-      )}
     </View>
   );
 }
@@ -146,13 +115,5 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 15,
     fontWeight: '600',
-  },
-  appleButton: {
-    width: '100%',
-    height: 52,
-  },
-  appleWebButton: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
   },
 });

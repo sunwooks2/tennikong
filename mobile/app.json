@@ -9,7 +9,6 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "usesAppleSignIn": true,
       "bundleIdentifier": "com.tennikong.app"
     },
     "android": {
@@ -29,7 +28,6 @@
     },
     "plugins": [
       "expo-router",
-      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

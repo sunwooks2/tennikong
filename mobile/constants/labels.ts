@@ -8,6 +8,14 @@ export const MATCH_TYPE_LABELS: Record<MatchType, string> = {
   singles: '단식',
 };
 
+/** 등록/수정 폼에 표시할 경기유형 (범용 '복식'은 제외) */
+export const MATCH_TYPE_FORM_OPTIONS = [
+  'mens_doubles',
+  'womens_doubles',
+  'mixed',
+  'singles',
+] as const satisfies readonly MatchType[];
+
 export const COURT_TYPE_LABELS: Record<CourtType, string> = {
   hard: '하드',
   clay: '클레이',

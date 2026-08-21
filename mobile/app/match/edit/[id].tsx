@@ -85,11 +85,9 @@ export default function MatchEditScreen() {
         registrationId={formValues.registrationId}
         initialValues={{
           matchDate: formValues.matchDate,
-          matchType: formValues.matchType,
           courtType: formValues.courtType,
           venueName: formValues.venueName,
           memo: formValues.memo,
-          tags: formValues.tags,
           roster: formValues.roster,
           entryInputs: formValues.entryInputs,
         }}
