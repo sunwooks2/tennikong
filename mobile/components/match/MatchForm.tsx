@@ -17,7 +17,12 @@ import { Text } from '@/components/Themed';
 import { COURT_TYPE_FORM_OPTIONS, COURT_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
 import type { CourtType } from '@/types/database';
-import { createMatches, fetchPlayerSuggestions, updateRegistration } from '@/services/matches';
+import {
+  createMatches,
+  fetchPlayerSuggestions,
+  hasAnyMatches,
+  updateRegistration,
+} from '@/services/matches';
 import {
   createDefaultRoster,
   createEmptyEntry,
@@ -45,7 +50,7 @@ interface MatchFormProps {
     entryInputs?: MatchEntryInput[];
   };
   colors: (typeof Colors)['light'];
-  onSuccess: () => void;
+  onSuccess: (isFirstMatch: boolean) => void;
 }
 
 export function MatchForm({
@@ -116,10 +121,12 @@ export function MatchForm({
           ...shared,
           entries,
         });
+        onSuccess(false);
       } else {
+        const hadMatchesBefore = await hasAnyMatches(userId);
         await createMatches(userId, { ...shared, entries });
+        onSuccess(!hadMatchesBefore);
       }
-      onSuccess();
     } catch (error) {
       showAlert(
         isEdit ? '수정 실패' : '등록 실패',
