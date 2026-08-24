@@ -22,8 +22,8 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 type GrowthSectionId = 'trend' | 'streak' | 'partner' | 'opponent';
 
 const DEFAULT_EXPANDED: Record<GrowthSectionId, boolean> = {
-  trend: true,
-  streak: true,
+  trend: false,
+  streak: false,
   partner: false,
   opponent: false,
 };

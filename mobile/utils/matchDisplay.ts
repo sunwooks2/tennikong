@@ -1,5 +1,5 @@
 import type { Match } from '@/types/database';
-import { MY_ROSTER_LABEL, type PlayerRoster, getRosterSlotDisplayName } from '@/utils/matchForm';
+import { MY_ROSTER_LABEL, toLineupDisplayName } from '@/utils/matchForm';
 import { getMatchGames } from '@/utils/matchNormalize';
 
 export function formatMyTeam(match: Match): string {
@@ -26,21 +26,40 @@ export function formatMatchTitle(match: Match): string {
   return `${formatMyTeam(match)} VS ${formatOpponentTeam(match)}`;
 }
 
+/** 포·백·포·백 순서(우리팀 포, 우리팀 백, 상대팀 포, 상대팀 백)로 참가자를 나열한다 */
 export function formatRosterPlayerNames(match: Match): string {
-  const roster: PlayerRoster = {
-    player1: match.my_name,
-    player2: match.partner_name ?? '',
-    player3: match.opponent1_name,
-    player4: match.opponent2_name ?? '',
-    extraPlayers: [],
-  };
-
   return [
-    MY_ROSTER_LABEL,
-    getRosterSlotDisplayName(roster, 'player2'),
-    getRosterSlotDisplayName(roster, 'player3'),
-    getRosterSlotDisplayName(roster, 'player4'),
-  ].join('·');
+    toLineupDisplayName(match.our_fore_name, match.my_name) || MY_ROSTER_LABEL,
+    toLineupDisplayName(match.our_back_name, match.my_name),
+    match.opponent_fore_name?.trim() ?? '',
+    match.opponent_back_name?.trim() ?? '',
+  ]
+    .filter((name) => name.length > 0)
+    .join('·');
+}
+
+/** 등록(registration) 전체에 등장하는 모든 참가자를 등장 순서대로 나열한다 (경기마다 다른 선수가 뛴 경우 대비) */
+export function formatRegistrationParticipants(matches: Match[]): string {
+  const myName = matches[0]?.my_name.trim() ?? '';
+  const seen = new Set<string>();
+  const names: string[] = [MY_ROSTER_LABEL];
+  if (myName) seen.add(myName);
+
+  for (const match of matches) {
+    for (const raw of [
+      match.our_fore_name,
+      match.our_back_name,
+      match.opponent_fore_name,
+      match.opponent_back_name,
+    ]) {
+      const trimmed = raw?.trim();
+      if (!trimmed || seen.has(trimmed)) continue;
+      seen.add(trimmed);
+      names.push(trimmed);
+    }
+  }
+
+  return names.join('·');
 }
 
 export function summarizeRegistrationResults(matches: Match[]) {
@@ -91,7 +110,11 @@ export function getRegistrationFingerprint(match: Match): string {
 }
 
 export function getRegistrationGroupKey(match: Match): string {
-  return getRegistrationFingerprint(match);
+  // registration_id가 있으면 그걸로 정확하게 묶는다. 상대팀도 경기마다 포/백이
+  // 바뀔 수 있어서, 참가자 이름 문자열(fingerprint)만으로는 같은 등록의 경기를
+  // 다른 등록으로 잘못 쪼갤 수 있다 — 레거시 데이터(등록 아이디가 없는 경우)에만
+  // fingerprint로 폴백한다.
+  return match.registration_id ?? getRegistrationFingerprint(match);
 }
 
 export function sortRegistrationMatches(matches: Match[]): Match[] {
@@ -131,6 +154,19 @@ export function groupMatchesByRegistration(matches: Match[]): Match[][] {
   }
 
   return [...groups.values()].map((group) => sortRegistrationMatches(group));
+}
+
+/** 이 경기(entry) 하나의 라인업을 "우리팀 vs 상대팀" 형태로 반환한다 (포·백 순서, '나' 표시 적용) */
+export function formatEntryLineupTeams(match: Match): string {
+  const ourFore = toLineupDisplayName(match.our_fore_name, match.my_name) || MY_ROSTER_LABEL;
+  const ourBack = toLineupDisplayName(match.our_back_name, match.my_name);
+  const oppFore = match.opponent_fore_name?.trim() ?? '';
+  const oppBack = match.opponent_back_name?.trim() ?? '';
+
+  const ourTeam = [ourFore, ourBack].filter(Boolean).join('·');
+  const oppTeam = [oppFore, oppBack].filter(Boolean).join('·');
+
+  return `${ourTeam} vs ${oppTeam}`;
 }
 
 export function formatLineupSummary(match: Match): string | null {

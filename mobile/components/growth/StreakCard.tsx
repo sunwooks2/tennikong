@@ -98,7 +98,7 @@ export function StreakCard({ streaks, colors }: StreakCardProps) {
 
       <StreakGroup
         emoji="🏆"
-        title="승리 스트릭"
+        title="연승 기록"
         currentLabel="현재"
         currentValue={streaks.current_win}
         bestLabel="최고"
@@ -110,7 +110,7 @@ export function StreakCard({ streaks, colors }: StreakCardProps) {
 
       <StreakGroup
         emoji="😵"
-        title="패배 스트릭"
+        title="연패 기록"
         currentLabel="현재"
         currentValue={streaks.current_loss}
         bestLabel="최고"

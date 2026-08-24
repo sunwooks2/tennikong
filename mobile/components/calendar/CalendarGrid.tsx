@@ -15,14 +15,22 @@ interface CalendarGridProps {
   colors: (typeof Colors)['light'];
 }
 
-/** 일별 경기횟수 → 콩 스탬프 투명도 (3단계: ≤4 / 6+ / 8+) */
+/** 일별 경기횟수 → 콩 스탬프 투명도 (3단계: 1~4 / 5~6 / 7+) */
 function stampOpacityForCount(count: number, selected: boolean): number {
   const base =
-    count >= 8 ? 0.78 :
-    count >= 6 ? 0.50 :
-    0.22;
+    count >= 7 ? 1.0 :
+    count >= 5 ? 0.65 :
+    0.35;
 
-  return selected ? Math.min(base + 0.10, 0.88) : base;
+  return selected ? Math.min(base + 0.10, 1) : base;
+}
+
+/** 일별 경기횟수 → 콩 스탬프 색상 (1~4 라임 / 5~6 진한 연두 / 7~8 기본색 / 9+ 검은콩) */
+function stampToneForCount(count: number): 'lime' | 'green' | 'default' | 'black' {
+  if (count >= 9) return 'black';
+  if (count >= 7) return 'default';
+  if (count >= 5) return 'green';
+  return 'lime';
 }
 
 export function CalendarGrid({
@@ -55,6 +63,7 @@ export function CalendarGrid({
           const isSelected = cell.dateKey === selectedDate;
           const matchCount = matchCountByDate.get(cell.dateKey) ?? 0;
           const hasMatch = matchCount > 0;
+          const stampTone = hasMatch ? stampToneForCount(matchCount) : null;
           const dayOfWeek = cell.date.getDay();
           const dayTextColor = isSelected
             ? '#fff'
@@ -91,7 +100,7 @@ export function CalendarGrid({
                       size={38}
                       variant="stamp"
                       opacity={stampOpacityForCount(matchCount, isSelected)}
-                      tone={isSelected ? 'light' : 'default'}
+                      tone={isSelected ? 'light' : (stampTone ?? 'default')}
                     />
                   </View>
                 )}
@@ -141,12 +150,13 @@ const styles = StyleSheet.create({
   },
   dayText: {
     fontSize: 15,
-    zIndex: 1,
+    position: 'relative',
+    zIndex: 2,
   },
   beanStamp: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
+    zIndex: 1,
   },
 });

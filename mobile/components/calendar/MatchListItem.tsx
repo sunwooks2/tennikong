@@ -5,13 +5,15 @@ import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
 import {
+  formatEntryLineupTeams,
+  formatRegistrationParticipants,
   formatRegistrationRecord,
-  formatRosterPlayerNames,
   sortRegistrationMatches,
   summarizeRegistrationResults,
 } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
-import { formatGameLabel } from '@/utils/matchResult';
+import { formatGameScore } from '@/utils/matchResult';
+import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
 
 interface MatchListItemProps {
   matches: Match[];
@@ -23,10 +25,7 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
   const router = useRouter();
   const orderedMatches = sortRegistrationMatches(matches);
   const primary = orderedMatches[0];
-  const games = orderedMatches.flatMap((match) => getMatchGames(match));
   const { wins, losses, draws } = summarizeRegistrationResults(orderedMatches);
-  const scoreLabel =
-    games.length > 0 ? games.map((game) => formatGameLabel(game)).join(' · ') : '-';
 
   return (
     <Pressable
@@ -41,19 +40,39 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
         </Text>
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
-            {formatRosterPlayerNames(primary)}
+            {formatRegistrationParticipants(orderedMatches)} ({orderedMatches.length}경기)
           </Text>
           <Text style={[styles.record, { color: colors.muted }]}>
             {formatRegistrationRecord(wins, losses, draws)}
           </Text>
         </View>
       </View>
-      <Text style={[styles.scores, { color: colors.muted }]}>{scoreLabel}</Text>
-      {orderedMatches.length > 1 ? (
-        <Text style={[styles.gameCount, { color: colors.muted }]}>
-          경기 {orderedMatches.length}건
-        </Text>
-      ) : null}
+
+      <View style={styles.entryList}>
+        {orderedMatches.map((match) => {
+          const games = getMatchGames(match);
+          const game = games[0];
+          const result = game?.result ?? match.result;
+          const scoreText = game
+            ? formatGameScore(game)
+            : match.my_score != null && match.opponent_score != null
+              ? `${match.my_score}:${match.opponent_score}`
+              : '-';
+
+          return (
+            <View key={match.id} style={styles.entryRow}>
+              <Text
+                style={[styles.entryLineup, { color: colors.muted }]}
+                numberOfLines={1}>
+                {formatEntryLineupTeams(match)}
+              </Text>
+              <Text style={[styles.entryScore, { color: getResultColor(result, colors) }]}>
+                {scoreText} ({getResultLabel(result)})
+              </Text>
+            </View>
+          );
+        })}
+      </View>
     </Pressable>
   );
 }
@@ -62,7 +81,7 @@ const styles = StyleSheet.create({
   item: {
     borderRadius: 12,
     padding: 14,
-    gap: 6,
+    gap: 8,
   },
   header: {
     flexDirection: 'row',
@@ -91,13 +110,24 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     flexShrink: 0,
   },
-  scores: {
-    fontSize: 14,
-    fontWeight: '600',
+  entryList: {
     marginLeft: 22,
+    gap: 4,
   },
-  gameCount: {
-    fontSize: 12,
-    marginLeft: 22,
+  entryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  entryLineup: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+  },
+  entryScore: {
+    flexShrink: 0,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

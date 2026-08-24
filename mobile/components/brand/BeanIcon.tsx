@@ -4,7 +4,7 @@ interface BeanIconProps {
   size?: number;
   opacity?: number;
   variant?: 'full' | 'stamp';
-  tone?: 'default' | 'light';
+  tone?: 'default' | 'light' | 'lime' | 'green' | 'black';
 }
 
 const TONES = {
@@ -21,6 +21,30 @@ const TONES = {
     shine: 'rgba(255,255,255,0.35)',
     eye: 'rgba(27, 67, 50, 0.7)',
     cheek: 'rgba(255, 180, 190, 0.45)',
+  },
+  // 스탬프 레벨 1 (경기 적음): 노랑에 가까운 라임색
+  lime: {
+    body: '#DCE775',
+    border: '#AFB42B',
+    shine: 'rgba(255,255,255,0.5)',
+    eye: '#827717',
+    cheek: 'rgba(255, 143, 163, 0.5)',
+  },
+  // 스탬프 레벨 2 (경기 중간): 진한 연두색
+  green: {
+    body: '#9CCC65',
+    border: '#558B2F',
+    shine: 'rgba(255,255,255,0.45)',
+    eye: '#33691E',
+    cheek: 'rgba(255, 143, 163, 0.5)',
+  },
+  // 스탬프 레벨 4 (경기 아주 많음): 검은콩 (테두리 진회색, 채우기 밝은 회색)
+  black: {
+    body: '#E0E0E0',
+    border: '#4A4A4A',
+    shine: 'rgba(255,255,255,0.6)',
+    eye: '#4A4A4A',
+    cheek: 'rgba(255, 143, 163, 0.55)',
   },
 } as const;
 

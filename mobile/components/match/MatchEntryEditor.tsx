@@ -46,10 +46,18 @@ export function MatchEntryEditor({
     const previous = entry[field];
     const patch: Partial<MatchEntryInput> = { [field]: value };
 
-    for (const otherField of LINEUP_FIELDS) {
-      if (otherField !== field && entry[otherField] === value) {
-        patch[otherField] = previous;
-        break;
+    const ourOtherField: LineupField | null =
+      field === 'our_fore' ? 'our_back' : field === 'our_back' ? 'our_fore' : null;
+
+    if (ourOtherField && previous === MY_ROSTER_LABEL && value !== MY_ROSTER_LABEL) {
+      // 우리팀 포/백 중 '나'였던 자리를 다른 사람으로 바꾸면, '나'는 반대편 자리로 옮겨간다.
+      patch[ourOtherField] = MY_ROSTER_LABEL;
+    } else {
+      for (const otherField of LINEUP_FIELDS) {
+        if (otherField !== field && entry[otherField] === value) {
+          patch[otherField] = previous;
+          break;
+        }
       }
     }
 
@@ -69,8 +77,8 @@ export function MatchEntryEditor({
         our_back: last?.our_back ?? '',
         opponent_fore: last?.opponent_fore ?? '',
         opponent_back: last?.opponent_back ?? '',
-        my_score: '',
-        opponent_score: '',
+        my_score: '0',
+        opponent_score: '0',
       },
     ]);
   };
@@ -93,15 +101,11 @@ export function MatchEntryEditor({
         const resultColor = getResultColor(result, colors);
         const canRemove = entries.length > 1 && !(protectFirstEntry && index === 0);
 
-        // 우리팀(포/백) 중 하나는 반드시 '나'여야 하고, 상대팀에는 '나'를 선택할 수 없다.
-        const ourForeOptions =
-          entry.our_back === MY_ROSTER_LABEL
-            ? rosterOptions.filter((name) => name !== MY_ROSTER_LABEL)
-            : [MY_ROSTER_LABEL];
-        const ourBackOptions =
-          entry.our_fore === MY_ROSTER_LABEL
-            ? rosterOptions.filter((name) => name !== MY_ROSTER_LABEL)
-            : [MY_ROSTER_LABEL];
+        // 상대팀에는 '나'를 선택할 수 없다. 우리팀(포/백) 중 하나가 반드시 '나'이도록
+        // 하는 제약은 옵션 목록이 아니라 updateLineupSlot의 자동 스왑으로 지킨다
+        // (옵션 자체를 제한하면 '나'의 위치를 절대 바꿀 수 없는 순환 잠금이 생긴다).
+        const ourForeOptions = rosterOptions;
+        const ourBackOptions = rosterOptions;
         const opponentOptions = rosterOptions.filter((name) => name !== MY_ROSTER_LABEL);
 
         return (

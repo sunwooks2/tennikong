@@ -22,15 +22,6 @@ export function RecentGamesList({ items, colors }: RecentGamesListProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.dotsRow}>
-        {[...items].reverse().map((item) => (
-          <View
-            key={item.id}
-            style={[styles.dot, { backgroundColor: resultColor(item.result, colors) }]}
-          />
-        ))}
-      </View>
-
       <View style={styles.list}>
         {items.map((item) => (
           <Pressable
@@ -68,16 +59,6 @@ function resultColor(result: MatchResult, colors: (typeof Colors)['light']) {
 const styles = StyleSheet.create({
   container: {
     gap: 12,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
   },
   list: {
     gap: 0,

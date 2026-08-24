@@ -142,12 +142,12 @@ export function createEmptyEntry(
   return {
     entry_number: entryNumber,
     match_type: matchType,
-    our_fore: '',
+    our_fore: MY_ROSTER_LABEL,
     our_back: '',
     opponent_fore: '',
     opponent_back: '',
-    my_score: '',
-    opponent_score: '',
+    my_score: '0',
+    opponent_score: '0',
   };
 }
 
@@ -214,6 +214,13 @@ export function validateMatchForm(params: {
     if (!entry.our_back.trim()) return `${label}의 우리 백을 선택해 주세요.`;
     if (!entry.opponent_fore.trim()) return `${label}의 상대 포를 선택해 주세요.`;
     if (!entry.opponent_back.trim()) return `${label}의 상대 백을 선택해 주세요.`;
+
+    if (entry.our_fore !== MY_ROSTER_LABEL && entry.our_back !== MY_ROSTER_LABEL) {
+      return `${label}의 우리팀 포/백 중 한 자리는 '나'여야 합니다.`;
+    }
+    if (entry.opponent_fore === MY_ROSTER_LABEL || entry.opponent_back === MY_ROSTER_LABEL) {
+      return `${label}의 상대팀에는 '나'를 선택할 수 없습니다.`;
+    }
 
     if (hasDuplicateLineup(params.roster, entry)) {
       return `${label}에서 같은 선수를 중복 선택할 수 없습니다.`;

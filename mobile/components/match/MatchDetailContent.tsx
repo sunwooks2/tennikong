@@ -64,6 +64,18 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
 
   return (
     <View style={styles.container}>
+      <FormRow label="경기일" colors={colors}>
+        <Text style={[styles.valueText, { color: colors.text }]}>
+          {formatDayLabel(match.match_date)}
+        </Text>
+      </FormRow>
+
+      <FormRow label="코트종류" colors={colors}>
+        <Text style={[styles.valueText, { color: colors.text }]}>
+          {COURT_TYPE_LABELS[match.court_type]}
+        </Text>
+      </FormRow>
+
       <FormRow label="선수" colors={colors} align="top">
         <View style={styles.rosterRow}>
           <View
@@ -86,22 +98,6 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
             </View>
           ))}
         </View>
-      </FormRow>
-
-      <FormRow label="경기일" colors={colors}>
-        <Text style={[styles.valueText, { color: colors.text }]}>
-          {formatDayLabel(match.match_date)}
-        </Text>
-      </FormRow>
-
-      <FormRow label="코트종류" colors={colors}>
-        <ReadonlyChip label={COURT_TYPE_LABELS[match.court_type]} colors={colors} />
-      </FormRow>
-
-      <FormRow label="경기장" colors={colors}>
-        <Text style={[styles.valueText, { color: colors.text }]}>
-          {match.venue_name?.trim() || '-'}
-        </Text>
       </FormRow>
 
       <FormRow label="경기" colors={colors} align="top">
@@ -137,20 +133,32 @@ function MatchEntryCard({
   return (
     <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
       <View style={styles.entryTypeRow}>
-        <ReadonlyChip label={MATCH_TYPE_LABELS[entry.matchType]} colors={colors} />
+        <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
+        <Text style={[styles.entryTypeText, { color: colors.text }]}>
+          {MATCH_TYPE_LABELS[entry.matchType]}
+        </Text>
       </View>
 
       <View style={styles.entryMainRow}>
         <View style={styles.indexSpacer} />
         <View style={styles.teamLabelArea}>
-          <Text style={[styles.teamLabel, { color: colors.muted }]}>우리팀</Text>
-          <View style={styles.vsSpacer} />
-          <Text style={[styles.teamLabel, { color: colors.muted }]}>상대팀</Text>
+          <View style={styles.teamLabelCell}>
+            <Text style={[styles.teamLabel, { color: colors.muted }]}>우리팀</Text>
+          </View>
+          <Text style={[styles.vs, { opacity: 0 }]}>vs</Text>
+          <View style={styles.teamLabelCell}>
+            <Text style={[styles.teamLabel, { color: colors.muted }]}>상대팀</Text>
+          </View>
+        </View>
+        {/* 아래 줄의 scoreArea와 폭을 맞추기 위한 투명 복제본 */}
+        <View style={[styles.scoreArea, { opacity: 0 }]}>
+          <Text style={styles.scoreText}>{scoreText}</Text>
+          {entry.result ? <Text style={styles.result}>{getResultLabel(entry.result)}</Text> : null}
         </View>
       </View>
 
       <View style={styles.entryMainRow}>
-        <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
+        <View style={styles.indexSpacer} />
 
         <View style={styles.lineupArea}>
           <View style={styles.slots}>
@@ -204,20 +212,6 @@ function PlayerSlotDisplay({
         numberOfLines={1}>
         {value}
       </Text>
-    </View>
-  );
-}
-
-function ReadonlyChip({
-  label,
-  colors,
-}: {
-  label: string;
-  colors: (typeof Colors)['light'];
-}) {
-  return (
-    <View style={[styles.chip, { backgroundColor: colors.tint, borderColor: colors.tint }]}>
-      <Text style={styles.chipText}>{label}</Text>
     </View>
   );
 }
@@ -302,18 +296,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  chip: {
-    alignSelf: 'flex-start',
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  chipText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-  },
   entries: {
     gap: 8,
     width: '100%',
@@ -323,13 +305,19 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    gap: 6,
+    gap: 2,
     width: '100%',
     overflow: 'hidden',
   },
   entryTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  entryTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   entryMainRow: {
     flexDirection: 'row',
@@ -354,16 +342,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  teamLabel: {
+  teamLabelCell: {
     flex: 1,
     minWidth: 0,
+    alignItems: 'center',
+  },
+  teamLabel: {
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  vsSpacer: {
-    width: 20,
-    flexShrink: 0,
   },
   lineupArea: {
     flex: 1,

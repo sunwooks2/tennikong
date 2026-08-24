@@ -46,7 +46,6 @@ export interface StatsSnapshot {
   opponentsByLossRate: LabeledStats[];
   byPosition: LabeledStats[];
   byWeekday: LabeledStats[];
-  topVenues: LabeledStats[];
   recentGames: RecentGameItem[];
 }
 
@@ -228,7 +227,6 @@ export function computeStats(matches: Match[], year: number, month: number): Sta
   const allGames = flattenGames(matches);
   const partnerGames = allGames.filter((flatGame) => getPartnerKey(flatGame.match));
   const positionGames = allGames.filter((flatGame) => getMyPosition(flatGame.match));
-  const venueGames = allGames.filter((flatGame) => flatGame.match.venue_name?.trim());
 
   const partnerStats = groupGames(
     partnerGames,
@@ -262,12 +260,7 @@ export function computeStats(matches: Match[], year: number, month: number): Sta
       return 0;
     }),
     byWeekday: computeWeekdayStats(allGames),
-    topVenues: groupGames(
-      venueGames,
-      (flatGame) => flatGame.match.venue_name!.trim(),
-      (key) => key,
-    ).slice(0, 5),
-    recentGames: computeRecentGames(matches, 20),
+    recentGames: computeRecentGames(matches, 5),
   };
 }
 

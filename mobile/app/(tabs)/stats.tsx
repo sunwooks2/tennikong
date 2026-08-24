@@ -31,8 +31,7 @@ type StatsSectionId =
   | 'partner'
   | 'opponent'
   | 'position'
-  | 'weekday'
-  | 'venues';
+  | 'weekday';
 
 const DEFAULT_EXPANDED: Record<StatsSectionId, boolean> = {
   monthly: true,
@@ -43,7 +42,6 @@ const DEFAULT_EXPANDED: Record<StatsSectionId, boolean> = {
   opponent: false,
   position: false,
   weekday: false,
-  venues: false,
 };
 
 export default function StatsScreen() {
@@ -137,13 +135,22 @@ export default function StatsScreen() {
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection
-              title="최근 20경기"
+              title="최근 5경기"
               colors={colors}
-              hint="왼쪽이 이전 · 오른쪽이 최근"
               summary={`${stats.recentGames.length}건`}
               expanded={expanded.recent}
               onToggle={() => toggleSection('recent')}>
               <RecentGamesList items={stats.recentGames} colors={colors} />
+            </CollapsibleStatsSection>
+
+            <CollapsibleStatsSection
+              title="코트유형별"
+              colors={colors}
+              hint="전체 기간"
+              summary={`${stats.byCourtType.length}개 코트`}
+              expanded={expanded.courtType}
+              onToggle={() => toggleSection('courtType')}>
+              <StatsRowList items={stats.byCourtType} colors={colors} />
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection
@@ -154,16 +161,6 @@ export default function StatsScreen() {
               expanded={expanded.matchType}
               onToggle={() => toggleSection('matchType')}>
               <StatsRowList items={stats.byMatchType} colors={colors} />
-            </CollapsibleStatsSection>
-
-            <CollapsibleStatsSection
-              title="코트별"
-              colors={colors}
-              hint="전체 기간"
-              summary={`${stats.byCourtType.length}개 코트`}
-              expanded={expanded.courtType}
-              onToggle={() => toggleSection('courtType')}>
-              <StatsRowList items={stats.byCourtType} colors={colors} />
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection
@@ -234,24 +231,14 @@ export default function StatsScreen() {
                   : '기록 없음'
               }
               expanded={expanded.weekday}
-              onToggle={() => toggleSection('weekday')}>
+              onToggle={() => toggleSection('weekday')}
+              isLast>
               <StatsRowList
                 items={weekdayItems}
                 colors={colors}
                 highlightLabel={highlightWeekday}
                 emptyText="요일별 기록이 없습니다"
               />
-            </CollapsibleStatsSection>
-
-            <CollapsibleStatsSection
-              title="TOP5 경기장"
-              colors={colors}
-              hint="전체 기간"
-              summary={stats.topVenues[0] ? stats.topVenues[0].label : '기록 없음'}
-              expanded={expanded.venues}
-              onToggle={() => toggleSection('venues')}
-              isLast>
-              <StatsRowList items={stats.topVenues} colors={colors} emptyText="경기장 기록이 없습니다" />
             </CollapsibleStatsSection>
           </StatsMenuList>
 

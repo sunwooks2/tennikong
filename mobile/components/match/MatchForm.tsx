@@ -150,15 +150,6 @@ export function MatchForm({
           />
         </FormRow>
 
-        <FormRow label="선수" colors={colors} align="top">
-          <PlayerRosterInput
-            roster={roster}
-            onChange={setRoster}
-            colors={colors}
-            onFetchSuggestions={loadPlayerSuggestions}
-          />
-        </FormRow>
-
         <FormRow label="코트종류" colors={colors}>
           <SelectBox
             options={COURT_TYPE_FORM_OPTIONS.map((value) => ({
@@ -168,6 +159,15 @@ export function MatchForm({
             value={courtType}
             onChange={setCourtType}
             colors={colors}
+          />
+        </FormRow>
+
+        <FormRow label="선수" colors={colors} align="top">
+          <PlayerRosterInput
+            roster={roster}
+            onChange={setRoster}
+            colors={colors}
+            onFetchSuggestions={loadPlayerSuggestions}
           />
         </FormRow>
 

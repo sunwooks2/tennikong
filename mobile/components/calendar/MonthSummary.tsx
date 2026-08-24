@@ -13,12 +13,12 @@ export function MonthSummary({ summary, colors }: MonthSummaryProps) {
   const winRateLabel = summary.total > 0 ? `${summary.win_rate}%` : '-';
 
   const items = [
-    { label: '경기일수', value: String(summary.days_played), valueColor: colors.text },
-    { label: '경기횟수', value: String(summary.total), valueColor: colors.text },
+    { label: '승률', value: winRateLabel, valueColor: colors.tint },
     { label: '승', value: String(summary.wins), valueColor: colors.win },
     { label: '패', value: String(summary.losses), valueColor: colors.loss },
     { label: '무', value: String(summary.draws), valueColor: colors.draw },
-    { label: '승률', value: winRateLabel, valueColor: colors.tint },
+    { label: '경기일수', value: String(summary.days_played), valueColor: colors.text },
+    { label: '경기횟수', value: String(summary.total), valueColor: colors.text },
   ];
 
   return (

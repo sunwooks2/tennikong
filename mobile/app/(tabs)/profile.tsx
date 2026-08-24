@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { SocialLoginButtons } from '@/components/auth/SocialLoginButtons';
+import { FeedbackModal } from '@/components/profile/FeedbackModal';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -17,13 +18,12 @@ import { useSession } from '@/hooks/useSession';
 import { signOut } from '@/lib/auth';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
-const MENU_ITEMS = ['월간 목표', '데이터 백업', '데이터 복원', '문의하기'];
-
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { isAuthenticated, loading, displayName, user, profile } = useSession();
   const [signingOut, setSigningOut] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const providerLabel = getProviderLabel(user?.app_metadata?.provider);
 
@@ -113,14 +113,12 @@ export default function ProfileScreen() {
             <Text style={[styles.menuValue, { color: colors.muted }]}>{providerLabel}</Text>
           </View>
 
-          {MENU_ITEMS.map((item) => (
-            <Pressable
-              key={item}
-              style={[styles.menuItem, { backgroundColor: colors.card }]}>
-              <Text style={[styles.menuText, { color: colors.text }]}>{item}</Text>
-              <Text style={{ color: colors.muted }}>›</Text>
-            </Pressable>
-          ))}
+          <Pressable
+            onPress={() => setFeedbackOpen(true)}
+            style={[styles.menuItem, { backgroundColor: colors.card }]}>
+            <Text style={[styles.menuText, { color: colors.text }]}>개선제안</Text>
+            <Text style={{ color: colors.muted }}>›</Text>
+          </Pressable>
 
           <Pressable
             onPress={handleSignOut}
@@ -132,6 +130,15 @@ export default function ProfileScreen() {
               <Text style={[styles.logoutText, { color: colors.loss }]}>로그아웃</Text>
             )}
           </Pressable>
+
+          {user ? (
+            <FeedbackModal
+              visible={feedbackOpen}
+              onClose={() => setFeedbackOpen(false)}
+              userId={user.id}
+              colors={colors}
+            />
+          ) : null}
         </>
       )}
     </ScrollView>

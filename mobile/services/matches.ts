@@ -5,7 +5,7 @@ import type {
   MonthlySummary,
 } from '@/types/database';
 import { getMonthRange } from '@/utils/date';
-import { getRegistrationFingerprint, sortRegistrationMatches } from '@/utils/matchDisplay';
+import { sortRegistrationMatches } from '@/utils/matchDisplay';
 import { getMatchGames } from '@/utils/matchNormalize';
 import type { ParsedMatchEntry } from '@/utils/matchForm';
 import { deriveMatchParticipants, deriveMyPosition, isGuestPlaceholderName } from '@/utils/matchForm';
@@ -350,25 +350,26 @@ export async function fetchRegistrationMatches(matchId: string): Promise<Match[]
   }
 
   const primaryMatch = primary as Match;
-  const fingerprint = getRegistrationFingerprint(primaryMatch);
 
-  const { data: dayMatches, error: dayError } = await supabase
+  if (!primaryMatch.registration_id) {
+    return [primaryMatch];
+  }
+
+  const { data: registrationMatches, error: regError } = await supabase
     .from('matches')
     .select(MATCH_DETAIL_SELECT)
     .eq('user_id', primaryMatch.user_id)
-    .eq('match_date', primaryMatch.match_date)
+    .eq('registration_id', primaryMatch.registration_id)
     .is('deleted_at', null)
     .order('created_at', { ascending: true });
 
-  if (dayError) {
-    throw new Error(dayError.message);
+  if (regError) {
+    throw new Error(regError.message);
   }
 
-  return sortRegistrationMatches(
-    ((dayMatches as Match[]) ?? []).filter(
-      (match) => getRegistrationFingerprint(match) === fingerprint,
-    ),
-  );
+  return sortRegistrationMatches(((registrationMatches as Match[]) ?? []).length > 0
+    ? (registrationMatches as Match[])
+    : [primaryMatch]);
 }
 
 async function ensureRegistrationId(
