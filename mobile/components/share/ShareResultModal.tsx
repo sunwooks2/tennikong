@@ -113,7 +113,7 @@ async function shareOnWeb(dataUri: string) {
     await nav.share({
       files: [file],
       title: '테니콩 경기결과',
-      text: `테니콩 경기결과\n나도 기록하기 ${SHARE_URL}`,
+      text: `🎾 테니콩 경기결과!\n나도 기록하기 👇\n${SHARE_URL}`,
     });
     return;
   }
