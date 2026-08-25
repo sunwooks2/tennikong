@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
+import { MemoIcon } from '@/components/icons/MemoIcon';
 import { ShareIcon } from '@/components/icons/ShareIcon';
 import { ShareResultModal } from '@/components/share/ShareResultModal';
 import Colors from '@/constants/Colors';
@@ -107,6 +108,15 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
             );
           })}
         </View>
+
+        {primary.memo ? (
+          <View style={styles.memoRow}>
+            <MemoIcon size={13} />
+            <Text style={[styles.memo, { color: colors.muted }]} numberOfLines={2}>
+              {primary.memo}
+            </Text>
+          </View>
+        ) : null}
       </Pressable>
 
       {user ? (
@@ -205,5 +215,17 @@ const styles = StyleSheet.create({
     marginLeft: 22,
     fontSize: 11,
     fontWeight: '600',
+  },
+  memoRow: {
+    marginLeft: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  memo: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

@@ -16,13 +16,8 @@ interface CalendarGridProps {
 }
 
 /** 일별 경기횟수 → 콩 스탬프 투명도 (3단계: 1~4 / 5~6 / 7+) */
-function stampOpacityForCount(count: number, selected: boolean): number {
-  const base =
-    count >= 7 ? 1.0 :
-    count >= 5 ? 0.65 :
-    0.35;
-
-  return selected ? Math.min(base + 0.10, 1) : base;
+function stampOpacityForCount(count: number): number {
+  return count >= 7 ? 1.0 : count >= 5 ? 0.65 : 0.35;
 }
 
 /** 일별 경기횟수 → 콩 스탬프 색상 (1~4 라임 / 5~6 진한 연두 / 7~8 기본색 / 9+ 검은콩) */
@@ -99,8 +94,8 @@ export function CalendarGrid({
                     <BeanIcon
                       size={38}
                       variant="stamp"
-                      opacity={stampOpacityForCount(matchCount, isSelected)}
-                      tone={isSelected ? 'light' : (stampTone ?? 'default')}
+                      opacity={stampOpacityForCount(matchCount)}
+                      tone={stampTone ?? 'default'}
                     />
                   </View>
                 )}
