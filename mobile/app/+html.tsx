@@ -20,13 +20,13 @@ export default function Root({ children }: { children: ReactNode }) {
         <meta property="og:site_name" content="테니콩" />
         <meta property="og:title" content="테니콩" />
         <meta property="og:description" content="경기를 기록하고 나만의 테니스 성장을 확인해보세요." />
-        <meta property="og:image" content="https://tennikong.vercel.app/og-image.png" />
+        <meta property="og:image" content="https://tennikong.vercel.app/og-image.png?v=2" />
         <meta property="og:url" content="https://tennikong.vercel.app" />
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="테니콩" />
         <meta name="twitter:description" content="경기를 기록하고 나만의 테니스 성장을 확인해보세요." />
-        <meta name="twitter:image" content="https://tennikong.vercel.app/og-image.png" />
+        <meta name="twitter:image" content="https://tennikong.vercel.app/og-image.png?v=2" />
 
         {/*
           Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
