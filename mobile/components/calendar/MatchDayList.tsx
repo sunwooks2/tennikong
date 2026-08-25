@@ -40,7 +40,7 @@ export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayList
         <Pressable
           onPress={goToNewMatch}
           style={[styles.addButton, { backgroundColor: colors.tint }]}>
-          <Text style={styles.addButtonText}>+ 등록</Text>
+          <Text style={styles.addButtonText}>+ 경기추가</Text>
         </Pressable>
       </View>
 

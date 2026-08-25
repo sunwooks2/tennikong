@@ -142,10 +142,12 @@ export function ShareResultModal({
   );
 }
 
+const SHARE_URL = 'https://tennikong.vercel.app';
+
 async function shareOnWeb(dataUri: string) {
   const nav = navigator as Navigator & {
     canShare?: (data: { files: File[] }) => boolean;
-    share?: (data: { files: File[]; title?: string }) => Promise<void>;
+    share?: (data: { files: File[]; title?: string; text?: string }) => Promise<void>;
   };
 
   const res = await fetch(dataUri);
@@ -153,7 +155,11 @@ async function shareOnWeb(dataUri: string) {
   const file = new File([blob], 'tennikong-result.png', { type: 'image/png' });
 
   if (nav.canShare && nav.share && nav.canShare({ files: [file] })) {
-    await nav.share({ files: [file], title: '테니콩 경기 결과' });
+    await nav.share({
+      files: [file],
+      title: '테니콩 경기결과',
+      text: `테니콩 경기결과\n나도 기록하기 ${SHARE_URL}`,
+    });
     return;
   }
 

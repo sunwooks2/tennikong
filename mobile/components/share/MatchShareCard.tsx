@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { BeanIcon } from '@/components/brand/BeanIcon';
 import { Text } from '@/components/Themed';
-import { COURT_TYPE_LABELS } from '@/constants/labels';
+import { COURT_TYPE_LABELS, MATCH_TYPE_COLORS, MATCH_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
 import { lifetimeBeanTone } from '@/utils/beanTier';
@@ -36,25 +36,22 @@ export function MatchShareCard({ matches, colors, totalCount }: MatchShareCardPr
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.brandRow}>
         <BeanIcon size={48} tone={tone} />
-        <View style={styles.brandTextWrap}>
-          <Text style={[styles.brandName, { color: colors.text }]}>테니콩</Text>
-          <Text style={[styles.brandSub, { color: colors.muted }]}>
-            총 {totalCount}경기째 기록 중
-          </Text>
-        </View>
+        <Text style={[styles.brandName, { color: colors.text }]}>테니콩 경기공유</Text>
       </View>
 
-      <Text style={[styles.record, { color: colors.text }]}>
-        {formatRegistrationRecord(wins, losses, draws)}
-      </Text>
-
       <Text style={[styles.meta, { color: colors.muted }]}>
-        {formatDayLabel(primary.match_date)} · {COURT_TYPE_LABELS[primary.court_type]}
+        {formatDayLabel(primary.match_date)} · {MATCH_TYPE_LABELS[primary.match_type]} ·{' '}
+        {COURT_TYPE_LABELS[primary.court_type]}
       </Text>
 
-      {mvp ? (
-        <Text style={[styles.mvp, { color: colors.tint }]}>🏅 이 경기의 MVP: {mvp.name}</Text>
-      ) : null}
+      <View style={styles.recordRow}>
+        <Text style={[styles.record, { color: colors.text }]}>
+          {formatRegistrationRecord(wins, losses, draws)}
+        </Text>
+        {mvp ? (
+          <Text style={[styles.mvp, { color: colors.tint }]}>🏅 오늘의 MVP {mvp.name}</Text>
+        ) : null}
+      </View>
 
       <View style={styles.entryList}>
         {orderedMatches.map((match) => {
@@ -69,9 +66,14 @@ export function MatchShareCard({ matches, colors, totalCount }: MatchShareCardPr
 
           return (
             <View key={match.id} style={styles.entryRow}>
-              <Text style={[styles.entryLineup, { color: colors.text }]} numberOfLines={1}>
-                {formatEntryLineupTeams(match)}
-              </Text>
+              <View style={styles.entryLineupRow}>
+                <Text style={[styles.entryType, { color: MATCH_TYPE_COLORS[match.match_type] }]}>
+                  {MATCH_TYPE_LABELS[match.match_type]}
+                </Text>
+                <Text style={[styles.entryLineup, { color: colors.text }]} numberOfLines={1}>
+                  {formatEntryLineupTeams(match)}
+                </Text>
+              </View>
               <Text style={[styles.entryScore, { color: getResultColor(result, colors) }]}>
                 {scoreText} ({getResultLabel(result)})
               </Text>
@@ -124,25 +126,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  brandTextWrap: {
-    gap: 2,
-  },
   brandName: {
     fontSize: 16,
     fontWeight: '700',
   },
-  brandSub: {
-    fontSize: 12,
+  meta: {
+    fontSize: 13,
+  },
+  recordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   record: {
     fontSize: 22,
     fontWeight: '800',
   },
-  meta: {
-    fontSize: 13,
-    marginTop: -6,
-  },
   mvp: {
+    flexShrink: 0,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -154,6 +156,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+  },
+  entryLineupRow: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  entryType: {
+    flexShrink: 0,
+    fontSize: 11,
+    fontWeight: '700',
   },
   entryLineup: {
     flex: 1,

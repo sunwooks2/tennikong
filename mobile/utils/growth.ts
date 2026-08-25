@@ -1,5 +1,6 @@
+import { MATCH_TYPE_COLORS, MATCH_TYPE_FORM_OPTIONS, MATCH_TYPE_LABELS } from '@/constants/labels';
 import { computeMonthlySummary } from '@/services/matches';
-import type { Match, MatchResult } from '@/types/database';
+import type { Match, MatchResult, MatchType } from '@/types/database';
 import { getMatchGames } from '@/utils/matchNormalize';
 import type { GameStats, LabeledStats } from '@/utils/stats';
 
@@ -9,6 +10,7 @@ export interface StreakStats {
   best_win_date: string | null;
   current_loss: number;
   best_loss: number;
+  best_loss_date: string | null;
 }
 
 export interface MonthlyTrendPoint {
@@ -18,6 +20,21 @@ export interface MonthlyTrendPoint {
   label: string;
   total: number;
   win_rate: number;
+}
+
+export interface MatchTypeTrendPoint {
+  key: string;
+  label: string;
+  total: number;
+  win_rate: number;
+}
+
+export interface MatchTypeTrendSeries {
+  matchType: MatchType;
+  label: string;
+  color: string;
+  totalGames: number;
+  points: MatchTypeTrendPoint[];
 }
 
 export interface PartnerCompatibility {
@@ -35,6 +52,7 @@ export interface PartnerCompatibility {
 export interface GrowthSnapshot {
   streaks: StreakStats;
   monthlyTrend: MonthlyTrendPoint[];
+  matchTypeTrend: MatchTypeTrendSeries[];
   partners: PartnerCompatibility[];
   nemesis: LabeledStats[];
   confident: LabeledStats[];
@@ -91,6 +109,7 @@ function computeStreaks(games: ChronologicalGame[]): StreakStats {
   let bestWin = 0;
   let bestWinDate: string | null = null;
   let bestLoss = 0;
+  let bestLossDate: string | null = null;
   let runWin = 0;
   let runLoss = 0;
 
@@ -105,7 +124,10 @@ function computeStreaks(games: ChronologicalGame[]): StreakStats {
     } else if (game.result === 'loss') {
       runLoss += 1;
       runWin = 0;
-      bestLoss = Math.max(bestLoss, runLoss);
+      if (runLoss > bestLoss) {
+        bestLoss = runLoss;
+        bestLossDate = game.date;
+      }
     } else {
       runWin = 0;
       runLoss = 0;
@@ -134,6 +156,7 @@ function computeStreaks(games: ChronologicalGame[]): StreakStats {
     best_win_date: bestWinDate,
     current_loss: currentLoss,
     best_loss: bestLoss,
+    best_loss_date: bestLossDate,
   };
 }
 
@@ -162,6 +185,46 @@ function buildMonthlyTrend(matches: Match[]): MonthlyTrendPoint[] {
   }
 
   return points;
+}
+
+function buildMatchTypeTrend(matches: Match[]): MatchTypeTrendSeries[] {
+  const today = new Date();
+  const months: { year: number; month: number; key: string; label: string }[] = [];
+
+  for (let offset = MONTHLY_TREND_COUNT - 1; offset >= 0; offset -= 1) {
+    const date = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    months.push({ year, month, key: `${year}-${month}`, label: `${month}월` });
+  }
+
+  return MATCH_TYPE_FORM_OPTIONS.map((matchType) => {
+    let totalGames = 0;
+    const points = months.map(({ year, month, key, label }) => {
+      const monthMatches = matches.filter((match) => {
+        if (match.match_type !== matchType) return false;
+        const [matchYear, matchMonth] = match.match_date.split('-').map(Number);
+        return matchYear === year && matchMonth === month;
+      });
+      const summary = computeMonthlySummary(year, month, monthMatches);
+      totalGames += summary.total;
+
+      return {
+        key,
+        label,
+        total: summary.total,
+        win_rate: summary.win_rate,
+      };
+    });
+
+    return {
+      matchType,
+      label: MATCH_TYPE_LABELS[matchType],
+      color: MATCH_TYPE_COLORS[matchType],
+      totalGames,
+      points,
+    };
+  }).filter((series) => series.totalGames > 0);
 }
 
 function getPartnerName(match: Match): string | null {
@@ -256,6 +319,7 @@ export function computeGrowth(matches: Match[]): GrowthSnapshot {
   return {
     streaks: computeStreaks(games),
     monthlyTrend: buildMonthlyTrend(matches),
+    matchTypeTrend: buildMatchTypeTrend(matches),
     partners: computePartnerCompatibility(matches),
     nemesis: [...opponentStats]
       .sort((a, b) => b.loss_rate - a.loss_rate || b.total - a.total)

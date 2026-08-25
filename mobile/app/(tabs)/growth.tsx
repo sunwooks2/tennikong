@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 
+import { MatchTypeTrendChart } from '@/components/growth/MatchTypeTrendChart';
 import { MonthlyTrendChart } from '@/components/growth/MonthlyTrendChart';
 import { OpponentMatchupList } from '@/components/growth/OpponentMatchupList';
 import { PartnerCompatibilityList } from '@/components/growth/PartnerCompatibilityList';
@@ -43,7 +44,7 @@ export default function GrowthScreen() {
   }, []);
 
   const showAuthBanner = isSupabaseConfigured && !sessionLoading && !isAuthenticated;
-  const { streaks, monthlyTrend, partners, nemesis, confident } = growth;
+  const { streaks, monthlyTrend, matchTypeTrend, partners, nemesis, confident } = growth;
   const latestMonth = monthlyTrend[monthlyTrend.length - 1];
   const topPartner = partners[0];
 
@@ -107,6 +108,7 @@ export default function GrowthScreen() {
               expanded={expanded.trend}
               onToggle={() => toggleSection('trend')}>
               <MonthlyTrendChart points={monthlyTrend} colors={colors} />
+              <MatchTypeTrendChart series={matchTypeTrend} colors={colors} />
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection

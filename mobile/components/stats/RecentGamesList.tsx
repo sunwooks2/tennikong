@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
-import { RESULT_LABELS } from '@/constants/labels';
+import { MATCH_TYPE_COLORS, MATCH_TYPE_LABELS, RESULT_LABELS } from '@/constants/labels';
 import type { MatchResult } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
 import type { RecentGameItem } from '@/utils/stats';
@@ -38,9 +38,14 @@ export function RecentGamesList({ items, colors }: RecentGamesListProps) {
               <Text style={[styles.date, { color: colors.muted }]}>
                 {formatDayLabel(item.matchDate)}
               </Text>
-              <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-                {item.title}
-              </Text>
+              <View style={styles.titleRow}>
+                <Text style={[styles.type, { color: MATCH_TYPE_COLORS[item.matchType] }]}>
+                  {MATCH_TYPE_LABELS[item.matchType]}
+                </Text>
+                <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                  {item.title}
+                </Text>
+              </View>
             </View>
             <Text style={[styles.score, { color: colors.text }]}>{item.scoreLabel}</Text>
           </Pressable>
@@ -90,7 +95,20 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 11,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    minWidth: 0,
+  },
+  type: {
+    flexShrink: 0,
+    fontSize: 11,
+    fontWeight: '700',
+  },
   title: {
+    flex: 1,
+    minWidth: 0,
     fontSize: 14,
     fontWeight: '600',
   },

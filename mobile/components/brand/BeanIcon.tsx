@@ -4,7 +4,7 @@ interface BeanIconProps {
   size?: number;
   opacity?: number;
   variant?: 'full' | 'stamp';
-  tone?: 'default' | 'light' | 'lime' | 'green' | 'black';
+  tone?: 'default' | 'brand' | 'light' | 'lime' | 'green' | 'black';
 }
 
 const TONES = {
@@ -14,6 +14,14 @@ const TONES = {
     shine: 'rgba(255,255,255,0.45)',
     eye: '#1B4332',
     cheek: 'rgba(255, 143, 163, 0.55)',
+  },
+  // 공통 헤더/브랜드 로고 전용 톤 (경기 기록량과 무관하게 고정)
+  brand: {
+    body: '#9CCC65',
+    border: '#558B2F',
+    shine: 'rgba(255,255,255,0.45)',
+    eye: '#33691E',
+    cheek: 'rgba(255, 143, 163, 0.5)',
   },
   light: {
     body: 'rgba(255,255,255,0.55)',
@@ -38,12 +46,12 @@ const TONES = {
     eye: '#33691E',
     cheek: 'rgba(255, 143, 163, 0.5)',
   },
-  // 스탬프 레벨 4 (경기 아주 많음): 검은콩 (테두리 진회색, 채우기 밝은 회색)
+  // 스탬프 레벨 4 (경기 아주 많음): 검은콩 (테두리 진회색, 채우기 진회색)
   black: {
-    body: '#E0E0E0',
-    border: '#4A4A4A',
-    shine: 'rgba(255,255,255,0.6)',
-    eye: '#4A4A4A',
+    body: '#7A7A7A',
+    border: '#333333',
+    shine: 'rgba(255,255,255,0.5)',
+    eye: '#1F1F1F',
     cheek: 'rgba(255, 143, 163, 0.55)',
   },
 } as const;

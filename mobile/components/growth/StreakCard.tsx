@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
+import { formatFullDayLabel } from '@/utils/date';
 import type { StreakStats } from '@/utils/growth';
 
 interface StreakCardProps {
@@ -15,12 +16,14 @@ function StreakMetric({
   unit,
   color,
   muted,
+  dateKey,
 }: {
   label: string;
   value: number;
   unit: string;
   color: string;
   muted: string;
+  dateKey?: string | null;
 }) {
   return (
     <View style={styles.metric}>
@@ -29,6 +32,11 @@ function StreakMetric({
         <Text style={[styles.metricValue, { color }]}>{value}</Text>
         <Text style={[styles.metricUnit, { color }]}>{unit}</Text>
       </View>
+      {dateKey ? (
+        <Text style={[styles.metricDate, { color: muted }]} numberOfLines={1}>
+          {formatFullDayLabel(dateKey)}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -40,6 +48,7 @@ function StreakGroup({
   currentValue,
   bestLabel,
   bestValue,
+  bestDate,
   unit,
   accent,
   muted,
@@ -50,6 +59,7 @@ function StreakGroup({
   currentValue: number;
   bestLabel: string;
   bestValue: number;
+  bestDate: string | null;
   unit: string;
   accent: string;
   muted: string;
@@ -75,6 +85,7 @@ function StreakGroup({
           unit={unit}
           color={accent}
           muted={muted}
+          dateKey={bestDate}
         />
       </View>
     </View>
@@ -82,18 +93,44 @@ function StreakGroup({
 }
 
 export function StreakCard({ streaks, colors }: StreakCardProps) {
+  const winBelowBest = streaks.current_win > 0 && streaks.current_win < streaks.best_win;
+  const lossBelowBest = streaks.current_loss > 0 && streaks.current_loss < streaks.best_loss;
+
   const activeFlow =
     streaks.current_win > 0
-      ? { emoji: '🔥', text: `현재 ${streaks.current_win}연승 중!`, color: colors.win }
+      ? {
+          emoji: '🔥',
+          text: `현재 ${streaks.current_win}연승 중!`,
+          color: colors.win,
+          sub:
+            winBelowBest && streaks.best_win_date
+              ? `최고 ${streaks.best_win}연승 (${formatFullDayLabel(streaks.best_win_date)})`
+              : null,
+        }
       : streaks.current_loss > 0
-        ? { emoji: '💧', text: `현재 ${streaks.current_loss}연패 중`, color: colors.loss }
-        : { emoji: '✨', text: '지금은 연승·연패가 없어요', color: colors.muted };
+        ? {
+            emoji: '💧',
+            text: `현재 ${streaks.current_loss}연패 중`,
+            color: colors.loss,
+            sub:
+              lossBelowBest && streaks.best_loss_date
+                ? `최고 ${streaks.best_loss}연패 (${formatFullDayLabel(streaks.best_loss_date)})`
+                : null,
+          }
+        : { emoji: '✨', text: '지금은 연승·연패가 없어요', color: colors.muted, sub: null };
 
   return (
     <View style={styles.container}>
       <View style={[styles.flowBanner, { backgroundColor: `${activeFlow.color}14` }]}>
         <Text style={styles.flowEmoji}>{activeFlow.emoji}</Text>
-        <Text style={[styles.flowText, { color: activeFlow.color }]}>{activeFlow.text}</Text>
+        <View style={styles.flowTextWrap}>
+          <Text style={[styles.flowText, { color: activeFlow.color }]}>{activeFlow.text}</Text>
+          {activeFlow.sub ? (
+            <Text style={[styles.flowSub, { color: colors.muted }]} numberOfLines={1}>
+              {activeFlow.sub}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <StreakGroup
@@ -103,6 +140,7 @@ export function StreakCard({ streaks, colors }: StreakCardProps) {
         currentValue={streaks.current_win}
         bestLabel="최고"
         bestValue={streaks.best_win}
+        bestDate={streaks.best_win_date}
         unit="연승"
         accent={colors.win}
         muted={colors.muted}
@@ -115,6 +153,7 @@ export function StreakCard({ streaks, colors }: StreakCardProps) {
         currentValue={streaks.current_loss}
         bestLabel="최고"
         bestValue={streaks.best_loss}
+        bestDate={streaks.best_loss_date}
         unit="연패"
         accent={colors.loss}
         muted={colors.muted}
@@ -138,10 +177,17 @@ const styles = StyleSheet.create({
   flowEmoji: {
     fontSize: 22,
   },
+  flowTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
   flowText: {
     fontSize: 15,
     fontWeight: '700',
-    flex: 1,
+  },
+  flowSub: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   group: {
     borderRadius: 12,
@@ -188,6 +234,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     paddingBottom: 5,
+  },
+  metricDate: {
+    fontSize: 11,
+    fontWeight: '500',
   },
   divider: {
     width: 1,

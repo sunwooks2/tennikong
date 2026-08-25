@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
   },
   body: {
     paddingHorizontal: 14,
+    paddingTop: 14,
     paddingBottom: 14,
   },
   list: {

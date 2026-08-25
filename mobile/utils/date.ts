@@ -29,6 +29,14 @@ export function formatShortDayLabel(dateKey: string): string {
   return `${yy}.${mm}.${dd}`;
 }
 
+export function formatFullDayLabel(dateKey: string): string {
+  const date = parseDateKey(dateKey);
+  const yyyy = String(date.getFullYear());
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}.${mm}.${dd}`;
+}
+
 export interface CalendarCell {
   date: Date;
   dateKey: string;

@@ -31,6 +31,7 @@ export interface RecentGameItem {
   id: string;
   matchId: string;
   matchDate: string;
+  matchType: MatchType;
   result: MatchResult;
   scoreLabel: string;
   title: string;
@@ -207,6 +208,7 @@ function computeRecentGames(matches: Match[], limit: number): RecentGameItem[] {
         id: `${match.id}:${game.game_number}`,
         matchId: match.id,
         matchDate: match.match_date,
+        matchType: match.match_type,
         result: game.result,
         scoreLabel: `${game.my_score}:${game.opponent_score}`,
         title: formatRosterPlayerNames(match),

@@ -71,6 +71,12 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
           </Pressable>
         </View>
 
+        {mvp ? (
+          <Text style={[styles.mvp, { color: colors.muted }]} numberOfLines={1}>
+            🏅 MVP {mvp.name}
+          </Text>
+        ) : null}
+
         <View style={styles.entryList}>
           {orderedMatches.map((match) => {
             const games = getMatchGames(match);
@@ -101,12 +107,6 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
             );
           })}
         </View>
-
-        {mvp ? (
-          <Text style={[styles.mvp, { color: colors.muted }]} numberOfLines={1}>
-            🏅 MVP {mvp.name}
-          </Text>
-        ) : null}
       </Pressable>
 
       {user ? (
@@ -204,6 +204,6 @@ const styles = StyleSheet.create({
   mvp: {
     marginLeft: 22,
     fontSize: 11,
-    marginTop: 2,
+    fontWeight: '600',
   },
 });
