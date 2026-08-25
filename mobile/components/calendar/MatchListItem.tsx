@@ -8,7 +8,6 @@ import { ShareIcon } from '@/components/icons/ShareIcon';
 import { ShareResultModal } from '@/components/share/ShareResultModal';
 import Colors from '@/constants/Colors';
 import { MATCH_TYPE_COLORS, MATCH_TYPE_LABELS } from '@/constants/labels';
-import { useSession } from '@/hooks/useSession';
 import type { Match } from '@/types/database';
 import {
   formatEntryLineupTeams,
@@ -30,7 +29,6 @@ interface MatchListItemProps {
 
 export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
   const router = useRouter();
-  const { user } = useSession();
   const [shareOpen, setShareOpen] = useState(false);
   const orderedMatches = sortRegistrationMatches(matches);
   const primary = orderedMatches[0];
@@ -119,15 +117,12 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
         ) : null}
       </Pressable>
 
-      {user ? (
-        <ShareResultModal
-          visible={shareOpen}
-          onClose={() => setShareOpen(false)}
-          matches={orderedMatches}
-          colors={colors}
-          userId={user.id}
-        />
-      ) : null}
+      <ShareResultModal
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        matches={orderedMatches}
+        colors={colors}
+      />
     </>
   );
 }

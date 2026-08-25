@@ -1,20 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
 import { MatchShareCard } from '@/components/share/MatchShareCard';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
-import { countUserMatches } from '@/services/matches';
 import type { Match } from '@/types/database';
 import { getErrorMessage } from '@/utils/alert';
 
@@ -23,7 +14,6 @@ interface ShareResultModalProps {
   onClose: () => void;
   matches: Match[];
   colors: (typeof Colors)['light'];
-  userId: string;
 }
 
 function notify(message: string, title = '알림') {
@@ -34,40 +24,9 @@ function notify(message: string, title = '알림') {
   }
 }
 
-export function ShareResultModal({
-  visible,
-  onClose,
-  matches,
-  colors,
-  userId,
-}: ShareResultModalProps) {
+export function ShareResultModal({ visible, onClose, matches, colors }: ShareResultModalProps) {
   const cardRef = useRef<View>(null);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
-
-  useEffect(() => {
-    if (!visible) {
-      setTotalCount(null);
-      return;
-    }
-
-    let cancelled = false;
-    countUserMatches(userId)
-      .then((count) => {
-        if (!cancelled) setTotalCount(count);
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          notify(getErrorMessage(error, '경기 수를 불러오지 못했습니다.'), '오류');
-          onClose();
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, userId]);
 
   const handleShare = async () => {
     if (!cardRef.current) return;
@@ -104,13 +63,9 @@ export function ShareResultModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.content}>
-          {totalCount === null ? (
-            <ActivityIndicator color={colors.tint} />
-          ) : (
-            <View ref={cardRef} collapsable={false}>
-              <MatchShareCard matches={matches} colors={colors} totalCount={totalCount} />
-            </View>
-          )}
+          <View ref={cardRef} collapsable={false}>
+            <MatchShareCard matches={matches} colors={colors} />
+          </View>
 
           <View style={styles.actions}>
             <Pressable
@@ -124,7 +79,7 @@ export function ShareResultModal({
             </Pressable>
             <Pressable
               onPress={handleShare}
-              disabled={sharing || totalCount === null}
+              disabled={sharing}
               style={[
                 styles.shareButton,
                 { backgroundColor: colors.tint, opacity: sharing ? 0.7 : 1 },

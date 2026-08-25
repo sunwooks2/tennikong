@@ -5,7 +5,6 @@ import { Text } from '@/components/Themed';
 import { COURT_TYPE_LABELS, MATCH_TYPE_COLORS, MATCH_TYPE_LABELS } from '@/constants/labels';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
-import { lifetimeBeanTone } from '@/utils/beanTier';
 import { formatDayLabel } from '@/utils/date';
 import {
   formatEntryLineupTeams,
@@ -21,21 +20,19 @@ import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
 interface MatchShareCardProps {
   matches: Match[];
   colors: (typeof Colors)['light'];
-  totalCount: number;
 }
 
-export function MatchShareCard({ matches, colors, totalCount }: MatchShareCardProps) {
+export function MatchShareCard({ matches, colors }: MatchShareCardProps) {
   const orderedMatches = sortRegistrationMatches(matches);
   const primary = orderedMatches[0];
   const { wins, losses, draws } = summarizeRegistrationResults(orderedMatches);
-  const tone = lifetimeBeanTone(totalCount);
   const ranking = computeRegistrationRanking(orderedMatches);
   const mvp = ranking[0];
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.brandRow}>
-        <BeanIcon size={48} tone={tone} />
+        <BeanIcon size={48} tone="brand" />
         <Text style={[styles.brandName, { color: colors.text }]}>테니콩 경기공유</Text>
       </View>
 
