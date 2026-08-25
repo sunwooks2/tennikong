@@ -78,14 +78,16 @@ export function CalendarGrid({
               <View
                 style={[
                   styles.dayCircle,
-                  cell.isToday && { borderColor: colors.tint, borderWidth: 2 },
-                  isSelected && { backgroundColor: colors.tint },
+                  {
+                    borderColor: cell.isToday ? colors.tint : 'transparent',
+                    borderWidth: cell.isToday ? 2 : 0,
+                    backgroundColor: isSelected ? colors.tint : 'transparent',
+                  },
                 ]}>
                 <Text
                   style={[
                     styles.dayText,
-                    { color: dayTextColor },
-                    isSelected && { fontWeight: '700' },
+                    { color: dayTextColor, fontWeight: isSelected ? '700' : '400' },
                   ]}>
                   {cell.date.getDate()}
                 </Text>
@@ -139,7 +141,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    borderColor: 'transparent',
     position: 'relative',
     overflow: 'hidden',
   },
