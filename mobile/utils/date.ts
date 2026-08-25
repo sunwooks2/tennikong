@@ -21,6 +21,14 @@ export function formatDayLabel(dateKey: string): string {
   return `${date.getMonth() + 1}월 ${date.getDate()}일 (${WEEKDAY_LABELS[date.getDay()]})`;
 }
 
+export function formatShortDayLabel(dateKey: string): string {
+  const date = parseDateKey(dateKey);
+  const yy = String(date.getFullYear() % 100).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}.${mm}.${dd}`;
+}
+
 export interface CalendarCell {
   date: Date;
   dateKey: string;

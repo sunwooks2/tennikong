@@ -124,7 +124,7 @@ export default function GrowthScreen() {
               emoji="🤝"
               title="페어 궁합"
               colors={colors}
-              hint="경기 많은 순 TOP 3"
+              hint="승률 높은 순 TOP 3"
               summary={partnerSummary}
               expanded={expanded.partner}
               onToggle={() => toggleSection('partner')}>

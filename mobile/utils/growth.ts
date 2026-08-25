@@ -6,6 +6,7 @@ import type { GameStats, LabeledStats } from '@/utils/stats';
 export interface StreakStats {
   current_win: number;
   best_win: number;
+  best_win_date: string | null;
   current_loss: number;
   best_loss: number;
 }
@@ -42,6 +43,7 @@ export interface GrowthSnapshot {
 interface ChronologicalGame {
   result: MatchResult;
   sortKey: string;
+  date: string;
 }
 
 const MIN_OPPONENT_GAMES = 3;
@@ -77,6 +79,7 @@ function getChronologicalGames(matches: Match[]): ChronologicalGame[] {
       items.push({
         result: game.result,
         sortKey: `${match.match_date}T${match.created_at}M${match.id}G${String(game.game_number).padStart(2, '0')}`,
+        date: match.match_date,
       });
     }
   }
@@ -86,6 +89,7 @@ function getChronologicalGames(matches: Match[]): ChronologicalGame[] {
 
 function computeStreaks(games: ChronologicalGame[]): StreakStats {
   let bestWin = 0;
+  let bestWinDate: string | null = null;
   let bestLoss = 0;
   let runWin = 0;
   let runLoss = 0;
@@ -94,7 +98,10 @@ function computeStreaks(games: ChronologicalGame[]): StreakStats {
     if (game.result === 'win') {
       runWin += 1;
       runLoss = 0;
-      bestWin = Math.max(bestWin, runWin);
+      if (runWin > bestWin) {
+        bestWin = runWin;
+        bestWinDate = game.date;
+      }
     } else if (game.result === 'loss') {
       runLoss += 1;
       runWin = 0;
@@ -124,6 +131,7 @@ function computeStreaks(games: ChronologicalGame[]): StreakStats {
   return {
     current_win: currentWin,
     best_win: bestWin,
+    best_win_date: bestWinDate,
     current_loss: currentLoss,
     best_loss: bestLoss,
   };
@@ -206,7 +214,7 @@ function computePartnerCompatibility(matches: Match[]): PartnerCompatibility[] {
 
   return [...map.values()]
     .filter((item) => item.total > 0)
-    .sort((a, b) => b.total - a.total || b.win_rate - a.win_rate)
+    .sort((a, b) => b.win_rate - a.win_rate || b.total - a.total)
     .slice(0, PARTNER_LIMIT)
     .map((item) => ({
       key: item.key,

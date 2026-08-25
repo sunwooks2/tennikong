@@ -33,12 +33,18 @@ export function CollapsibleStatsSection({
     <View style={[styles.section, !isLast && { borderBottomColor: `${colors.muted}22`, borderBottomWidth: StyleSheet.hairlineWidth }]}>
       <Pressable
         onPress={onToggle}
-        style={({ pressed }) => [styles.headerButton, pressed && styles.headerPressed]}
+        style={({ pressed }) => [
+          styles.headerButton,
+          expanded && { backgroundColor: `${colors.tint}12` },
+          pressed && styles.headerPressed,
+        ]}
         accessibilityRole="button"
         accessibilityState={{ expanded }}>
         {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
         <View style={styles.headerText}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.title, { color: expanded ? colors.tint : colors.text }]}>
+            {title}
+          </Text>
           {!expanded && summary ? (
             <Text style={[styles.summary, { color: colors.muted }]} numberOfLines={1}>
               {summary}
@@ -163,8 +169,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
   },
   hint: {
     fontSize: 12,

@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Themed';
 import {
   COURT_TYPE_LABELS,
+  MATCH_TYPE_COLORS,
   MATCH_TYPE_LABELS,
 } from '@/constants/labels';
 import Colors from '@/constants/Colors';
@@ -11,6 +12,7 @@ import type { Match, MatchResult } from '@/types/database';
 import { formatDayLabel } from '@/utils/date';
 import { MY_ROSTER_LABEL, ROSTER_KEYS, getRosterSlotDisplayName, toLineupDisplayName } from '@/utils/matchForm';
 import { sortRegistrationMatches } from '@/utils/matchDisplay';
+import { computeRegistrationRanking } from '@/utils/matchRanking';
 import { buildRoster } from '@/utils/matchToForm';
 import { getMatchGames } from '@/utils/matchNormalize';
 import { getResultColor, getResultLabel } from '@/utils/resultDisplay';
@@ -78,20 +80,11 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
 
       <FormRow label="선수" colors={colors} align="top">
         <View style={styles.rosterRow}>
-          <View
-            style={[
-              styles.rosterMe,
-              { borderColor: colors.tint, backgroundColor: `${colors.tint}18` },
-            ]}>
+          <View style={styles.rosterMe}>
             <Text style={[styles.rosterMeText, { color: colors.tint }]}>{rosterNames[0]}</Text>
           </View>
           {rosterNames.slice(1).map((name, index) => (
-            <View
-              key={index}
-              style={[
-                styles.rosterCell,
-                { borderColor: colors.muted, backgroundColor: colors.card },
-              ]}>
+            <View key={index} style={styles.rosterCell}>
               <Text style={[styles.rosterCellText, { color: colors.text }]} numberOfLines={1}>
                 {name}
               </Text>
@@ -106,6 +99,10 @@ export function MatchDetailContent({ matches, colors }: MatchDetailContentProps)
             <MatchEntryCard key={entry.entryNumber} entry={entry} colors={colors} />
           ))}
         </View>
+      </FormRow>
+
+      <FormRow label="순위" colors={colors} align="top">
+        <RankingList matches={orderedMatches} colors={colors} />
       </FormRow>
 
       {match.memo ? (
@@ -132,57 +129,60 @@ function MatchEntryCard({
 
   return (
     <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
-      <View style={styles.entryTypeRow}>
-        <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
-        <Text style={[styles.entryTypeText, { color: colors.text }]}>
-          {MATCH_TYPE_LABELS[entry.matchType]}
-        </Text>
-      </View>
+      <Text style={[styles.entryIndex, { color: colors.muted }]}>{entry.entryNumber}</Text>
+      <Text style={[styles.entryTypeText, { color: MATCH_TYPE_COLORS[entry.matchType] }]}>
+        {MATCH_TYPE_LABELS[entry.matchType]}
+      </Text>
 
-      <View style={styles.entryMainRow}>
-        <View style={styles.indexSpacer} />
-        <View style={styles.teamLabelArea}>
-          <View style={styles.teamLabelCell}>
-            <Text style={[styles.teamLabel, { color: colors.muted }]}>우리팀</Text>
-          </View>
-          <Text style={[styles.vs, { opacity: 0 }]}>vs</Text>
-          <View style={styles.teamLabelCell}>
-            <Text style={[styles.teamLabel, { color: colors.muted }]}>상대팀</Text>
-          </View>
+      <View style={styles.lineupArea}>
+        <View style={styles.slots}>
+          <PlayerSlotDisplay positionLabel="포" value={entry.ourFore} colors={colors} />
+          <PlayerSlotDisplay positionLabel="백" value={entry.ourBack} colors={colors} />
         </View>
-        {/* 아래 줄의 scoreArea와 폭을 맞추기 위한 투명 복제본 */}
-        <View style={[styles.scoreArea, { opacity: 0 }]}>
-          <Text style={styles.scoreText}>{scoreText}</Text>
-          {entry.result ? <Text style={styles.result}>{getResultLabel(entry.result)}</Text> : null}
+
+        <Text style={[styles.vs, { color: colors.muted }]}>vs</Text>
+
+        <View style={styles.slots}>
+          <PlayerSlotDisplay positionLabel="포" value={entry.opponentFore} colors={colors} />
+          <PlayerSlotDisplay positionLabel="백" value={entry.opponentBack} colors={colors} />
         </View>
       </View>
 
-      <View style={styles.entryMainRow}>
-        <View style={styles.indexSpacer} />
-
-        <View style={styles.lineupArea}>
-          <View style={styles.slots}>
-            <PlayerSlotDisplay positionLabel="포" value={entry.ourFore} colors={colors} />
-            <PlayerSlotDisplay positionLabel="백" value={entry.ourBack} colors={colors} />
-          </View>
-
-          <Text style={[styles.vs, { color: colors.muted }]}>vs</Text>
-
-          <View style={styles.slots}>
-            <PlayerSlotDisplay positionLabel="포" value={entry.opponentFore} colors={colors} />
-            <PlayerSlotDisplay positionLabel="백" value={entry.opponentBack} colors={colors} />
-          </View>
-        </View>
-
-        <View style={[styles.scoreArea, { borderLeftColor: colors.muted }]}>
-          <Text style={[styles.scoreText, { color: colors.text }]}>{scoreText}</Text>
-          {entry.result ? (
-            <Text style={[styles.result, { color: resultColor }]}>
-              {getResultLabel(entry.result)}
-            </Text>
-          ) : null}
-        </View>
+      <View style={[styles.scoreArea, { borderLeftColor: colors.muted }]}>
+        <Text style={[styles.scoreText, { color: colors.text }]}>{scoreText}</Text>
+        {entry.result ? (
+          <Text style={[styles.result, { color: resultColor }]}>
+            {getResultLabel(entry.result)}
+          </Text>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+function RankingList({ matches, colors }: { matches: Match[]; colors: (typeof Colors)['light'] }) {
+  const ranking = computeRegistrationRanking(matches);
+
+  if (ranking.length === 0) return null;
+
+  return (
+    <View style={styles.rankingList}>
+      {ranking.map((row, idx) => (
+        <View key={row.name} style={styles.rankingRow}>
+          <Text style={[styles.rankingPosition, { color: colors.muted }]}>{idx + 1}위</Text>
+          <Text
+            style={[
+              styles.rankingName,
+              { color: row.isMe ? colors.tint : colors.text, fontWeight: row.isMe ? '800' : '600' },
+            ]}
+            numberOfLines={1}>
+            {row.name}
+          </Text>
+          <Text style={[styles.rankingRecord, { color: colors.muted }]}>
+            {row.wins}승 {row.losses}패 {row.draws}무
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }
@@ -199,13 +199,7 @@ function PlayerSlotDisplay({
   const isMe = value === MY_ROSTER_LABEL;
 
   return (
-    <View
-      style={[
-        styles.slot,
-        isMe
-          ? { borderColor: colors.tint, backgroundColor: `${colors.tint}18` }
-          : { borderColor: colors.muted, backgroundColor: colors.background },
-      ]}>
+    <View style={styles.slot}>
       <Text style={[styles.slotPosition, { color: colors.muted }]}>{positionLabel}</Text>
       <Text
         style={[styles.slotValue, { color: isMe ? colors.tint : colors.text }]}
@@ -270,29 +264,23 @@ const styles = StyleSheet.create({
   },
   rosterMe: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rosterMeText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
   },
   rosterCell: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   rosterCellText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -301,55 +289,24 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   entryCard: {
-    flexDirection: 'column',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    gap: 2,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  entryTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     gap: 6,
-    marginBottom: 4,
+    width: '100%',
   },
   entryTypeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-  },
-  entryMainRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    flexShrink: 0,
   },
   entryIndex: {
     width: 14,
     flexShrink: 0,
     fontSize: 12,
     fontWeight: '700',
-    textAlign: 'center',
-  },
-  indexSpacer: {
-    width: 14,
-    flexShrink: 0,
-  },
-  teamLabelArea: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  teamLabelCell: {
-    flex: 1,
-    minWidth: 0,
-    alignItems: 'center',
-  },
-  teamLabel: {
-    fontSize: 10,
-    fontWeight: '600',
     textAlign: 'center',
   },
   lineupArea: {
@@ -368,19 +325,16 @@ const styles = StyleSheet.create({
   slot: {
     flex: 1,
     minWidth: 0,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 2,
-    paddingVertical: 6,
     alignItems: 'center',
-    gap: 2,
+    justifyContent: 'center',
+    gap: 1,
   },
   slotPosition: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
   slotValue: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
     maxWidth: '100%',
   },
@@ -409,5 +363,29 @@ const styles = StyleSheet.create({
   memo: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  rankingList: {
+    gap: 4,
+    width: '100%',
+  },
+  rankingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rankingPosition: {
+    width: 28,
+    flexShrink: 0,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  rankingName: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 14,
+  },
+  rankingRecord: {
+    flexShrink: 0,
+    fontSize: 12,
   },
 });

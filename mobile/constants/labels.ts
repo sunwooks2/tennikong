@@ -16,6 +16,14 @@ export const MATCH_TYPE_FORM_OPTIONS = [
   'singles',
 ] as const satisfies readonly MatchType[];
 
+export const MATCH_TYPE_COLORS: Record<MatchType, string> = {
+  womens_doubles: '#DB2777',
+  mens_doubles: '#2563EB',
+  mixed: '#65A30D',
+  singles: '#DC2626',
+  doubles: '#6B7280',
+};
+
 export const COURT_TYPE_LABELS: Record<CourtType, string> = {
   hard: '하드',
   clay: '클레이',

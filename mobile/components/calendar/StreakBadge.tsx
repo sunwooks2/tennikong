@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
+import { formatShortDayLabel } from '@/utils/date';
 import type { StreakStats } from '@/utils/growth';
 
 interface StreakBadgeProps {
@@ -35,7 +36,11 @@ export function StreakBadge({ streaks, colors, compact = false }: StreakBadgePro
           { color: isWinning ? colors.win : colors.muted },
         ]}
         numberOfLines={1}>
-        {isWinning ? `${streaks.current_win}연승중` : `최고 ${streaks.best_win}`}
+        {isWinning
+          ? `${streaks.current_win}연승중`
+          : `최고 ${streaks.best_win}연승${
+              streaks.best_win_date ? `(${formatShortDayLabel(streaks.best_win_date)})` : ''
+            }`}
       </Text>
       {!compact && isWinning && streaks.best_win > streaks.current_win ? (
         <Text style={[styles.sub, { color: colors.muted }]} numberOfLines={1}>
