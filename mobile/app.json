@@ -2,6 +2,7 @@
   "expo": {
     "name": "테니콩",
     "slug": "tennikong",
+    "owner": "wooooooook",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -40,6 +41,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b3c0d885-bde2-47da-8ed3-1b6fd7cca3ba"
+      }
     }
   }
 }
