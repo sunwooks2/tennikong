@@ -4,6 +4,9 @@ db.txt
 .env.local
 mobile/.env
 
+# 개인 메모
+테니콩.txt
+
 # Node
 node_modules/
 npm-debug.log*

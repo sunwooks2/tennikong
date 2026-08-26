@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>테니콩 인트로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #F8FAF9;
+    --stage-bg: #FFD34D;
+    --ink: #1B4332;
+    --accent: #2D6A4F;
+    --muted: #6C757D;
+    --cheek: rgba(255,143,163,0.55);
+    --shine: rgba(255,255,255,0.55);
+
+    --lime-body:#DCE775; --lime-border:#AFB42B; --lime-eye:#827717;
+    --green-body:#9CCC65; --green-border:#558B2F; --green-eye:#33691E;
+    --default-body:#74C69D; --default-border:#2D6A4F; --default-eye:#1B4332;
+    --black-body:#E0E0E0; --black-border:#4A4A4A; --black-eye:#4A4A4A;
+    --brand-body:#9CCC65; --brand-border:#558B2F; --brand-eye:#33691E;
+
+    --font-display: 'Do Hyeon', 'Malgun Gothic', sans-serif;
+    --font-body: 'Gowun Dodum', 'Malgun Gothic', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    width: 1080px; height: 1920px;
+    background: var(--stage-bg);
+    overflow: hidden;
+    font-family: var(--font-body);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  }
+
+  .stage {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    background: var(--stage-bg);
+    overflow: hidden;
+  }
+
+  /* ---------- Bean mascot ---------- */
+  .bean-wrap {
+    position: absolute;
+    left: 50%;
+    top: 760px;
+    width: 340px;
+    height: 340px;
+    z-index: 30;
+    opacity: 1;
+    transition: left 1.1s cubic-bezier(.34,1.2,.4,1), top 1.1s cubic-bezier(.34,1.2,.4,1),
+                width 0.9s cubic-bezier(.34,1.2,.4,1), height 0.9s cubic-bezier(.34,1.2,.4,1),
+                opacity 0.5s ease;
+  }
+  .bean-wrap.hop-in { animation: hopIn 1.9s cubic-bezier(.4,0,.2,1) forwards; }
+  .bean-wrap.hidden { opacity: 0; }
+  .bean-wrap.center-final {
+    left: 50%;
+    top: 560px;
+    width: 320px;
+    height: 320px;
+  }
+
+  @keyframes hopIn {
+    0%   { transform: translateX(-50%) translate(-780px, 0) scale(1, 1); }
+    8%   { transform: translateX(-50%) translate(-680px, -130px) scale(0.88, 1.14); }
+    16%  { transform: translateX(-50%) translate(-580px, 0) scale(1.18, 0.82); }
+    24%  { transform: translateX(-50%) translate(-580px, 0) scale(1, 1); }
+    34%  { transform: translateX(-50%) translate(-410px, -155px) scale(0.88, 1.14); }
+    44%  { transform: translateX(-50%) translate(-240px, 0) scale(1.18, 0.82); }
+    52%  { transform: translateX(-50%) translate(-240px, 0) scale(1, 1); }
+    64%  { transform: translateX(-50%) translate(-85px, -110px) scale(0.9, 1.12); }
+    76%  { transform: translateX(-50%) translate(0, 0) scale(1.15, 0.85); }
+    86%  { transform: translateX(-50%) translate(0, 0) scale(0.98, 1.05); }
+    100% { transform: translateX(-50%) translate(0, 0) scale(1, 1); }
+  }
+
+  .bean-inner { width: 100%; height: 100%; }
+  .bean-inner.idle { animation: idleBob 1.6s ease-in-out infinite; }
+  .bean-inner.tilt { animation: tilt 0.9s ease-in-out; }
+  .bean-inner.nod { animation: nod 0.7s ease-in-out; }
+  .bean-inner.cheer { animation: cheer 0.9s cubic-bezier(.34,1.56,.64,1); }
+  .bean-inner.levelup { animation: levelPop 0.5s cubic-bezier(.34,1.56,.64,1); }
+
+  @keyframes idleBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  @keyframes tilt {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-8deg); }
+    70% { transform: rotate(6deg); }
+  }
+  @keyframes nod {
+    0%, 100% { transform: translateY(0); }
+    30% { transform: translateY(12px); }
+    60% { transform: translateY(-6px); }
+  }
+  @keyframes cheer {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    35% { transform: translateY(-46px) rotate(-6deg); }
+    60% { transform: translateY(-46px) rotate(6deg); }
+  }
+  @keyframes levelPop {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+    40% { transform: scale(1.18); filter: drop-shadow(0 0 26px rgba(255,255,255,0.9)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  }
+
+  .bean-svg { width: 100%; height: 100%; overflow: visible; }
+  .bean-body-shape { fill: var(--default-body); stroke: var(--default-border); stroke-width: 5; transition: fill 0.5s ease, stroke 0.5s ease; }
+  .bean-eye { fill: var(--default-eye); transition: fill 0.5s ease; }
+  .bean-cheek { fill: var(--cheek); }
+  .bean-smile { stroke: var(--default-eye); transition: stroke 0.5s ease; }
+  .bean-shine { fill: var(--shine); }
+
+  .bean-wrap[data-tone="lime"] .bean-body-shape { fill: var(--lime-body); stroke: var(--lime-border); }
+  .bean-wrap[data-tone="lime"] .bean-eye, .bean-wrap[data-tone="lime"] .bean-smile { fill: var(--lime-eye); stroke: var(--lime-eye); }
+  .bean-wrap[data-tone="green"] .bean-body-shape { fill: var(--green-body); stroke: var(--green-border); }
+  .bean-wrap[data-tone="green"] .bean-eye, .bean-wrap[data-tone="green"] .bean-smile { fill: var(--green-eye); stroke: var(--green-eye); }
+  .bean-wrap[data-tone="default"] .bean-body-shape { fill: var(--default-body); stroke: var(--default-border); }
+  .bean-wrap[data-tone="default"] .bean-eye, .bean-wrap[data-tone="default"] .bean-smile { fill: var(--default-eye); stroke: var(--default-eye); }
+  .bean-wrap[data-tone="black"] .bean-body-shape { fill: var(--black-body); stroke: var(--black-border); }
+  .bean-wrap[data-tone="black"] .bean-eye, .bean-wrap[data-tone="black"] .bean-smile { fill: var(--black-eye); stroke: var(--black-eye); }
+  .bean-wrap[data-tone="brand"] .bean-body-shape { fill: var(--brand-body); stroke: var(--brand-border); }
+  .bean-wrap[data-tone="brand"] .bean-eye, .bean-wrap[data-tone="brand"] .bean-smile { fill: var(--brand-eye); stroke: var(--brand-eye); }
+
+  /* ---------- Speech bubble ---------- */
+  .bubble {
+    position: absolute;
+    left: 50%;
+    top: 380px;
+    transform: translate(-50%, 0) scale(0.7);
+    background: #ffffff;
+    border: 4px solid var(--ink);
+    border-radius: 28px;
+    padding: 30px 40px;
+    max-width: 820px;
+    font-family: var(--font-display);
+    font-size: 52px;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.4;
+    opacity: 0;
+    z-index: 40;
+    box-shadow: 0 8px 0 rgba(27,67,50,0.08);
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -26px;
+    transform: translateX(-50%);
+    border-width: 16px 14px 0 14px;
+    border-style: solid;
+    border-color: var(--ink) transparent transparent transparent;
+  }
+  .bubble::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -19px;
+    transform: translateX(-50%);
+    border-width: 13px 11px 0 11px;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+    z-index: 1;
+  }
+  .bubble.show { animation: bubblePop 0.5s cubic-bezier(.34,1.56,.64,1) forwards; }
+  .bubble.hide { animation: bubbleOut 0.35s ease forwards; }
+  @keyframes bubblePop {
+    0% { opacity: 0; transform: translate(-50%, 20px) scale(0.6); }
+    70% { opacity: 1; transform: translate(-50%, -6px) scale(1.05); }
+    100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+  @keyframes bubbleOut {
+    to { opacity: 0; transform: translate(-50%, -14px) scale(0.85); }
+  }
+
+  /* ---------- Caption (full-width top banner) ---------- */
+  .caption {
+    position: absolute;
+    left: 60px;
+    top: 220px;
+    width: 960px;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 76px;
+    line-height: 1.25;
+    color: var(--ink);
+    opacity: 0;
+    z-index: 40;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.6);
+    word-break: keep-all;
+  }
+  .caption .sub {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 44px;
+    color: var(--accent);
+    margin-top: 24px;
+    line-height: 1.5;
+    min-height: 66px;
+    word-break: keep-all;
+  }
+  .caption.show { animation: captionIn 0.6s cubic-bezier(.22,1,.36,1) forwards; }
+  .caption.hide { animation: captionOut 0.35s ease forwards; }
+  @keyframes captionIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes captionOut {
+    to { opacity: 0; transform: translateY(-16px); }
+  }
+  .sub-fade { animation: subFade 0.4s ease; }
+  @keyframes subFade {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- Tier icons (콩 색깔 4단계, shown below the caption) ---------- */
+  .tier-row {
+    position: absolute;
+    left: 50%;
+    top: 413px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 40;
+  }
+  .tier-icon {
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+    transform: scale(0.3) translateY(16px);
+  }
+  .tier-icon.pop { animation: tierPop 0.55s cubic-bezier(.34,1.56,.64,1) forwards; }
+  @keyframes tierPop {
+    0% { opacity: 0; transform: scale(0.3) translateY(16px); }
+    55% { opacity: 1; transform: scale(1.22) translateY(-10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .tier-svg { width: 100%; height: 100%; overflow: visible; }
+  .tier-icon[data-tone="lime"] .tier-body { fill: var(--lime-body); stroke: var(--lime-border); stroke-width: 5; }
+  .tier-icon[data-tone="lime"] .tier-eye, .tier-icon[data-tone="lime"] .tier-smile { fill: var(--lime-eye); stroke: var(--lime-eye); }
+  .tier-icon[data-tone="green"] .tier-body { fill: var(--green-body); stroke: var(--green-border); stroke-width: 5; }
+  .tier-icon[data-tone="green"] .tier-eye, .tier-icon[data-tone="green"] .tier-smile { fill: var(--green-eye); stroke: var(--green-eye); }
+  .tier-icon[data-tone="default"] .tier-body { fill: var(--default-body); stroke: var(--default-border); stroke-width: 5; }
+  .tier-icon[data-tone="default"] .tier-eye, .tier-icon[data-tone="default"] .tier-smile { fill: var(--default-eye); stroke: var(--default-eye); }
+  .tier-icon[data-tone="black"] .tier-body { fill: var(--black-body); stroke: var(--black-border); stroke-width: 5; }
+  .tier-icon[data-tone="black"] .tier-eye, .tier-icon[data-tone="black"] .tier-smile { fill: var(--black-eye); stroke: var(--black-eye); }
+
+  /* ---------- Phone mockup (bottom-center, top 25% of stage reserved for caption) ---------- */
+  .phone {
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 1370px;
+    border-radius: 46px;
+    background: #111;
+    padding: 16px;
+    box-shadow: 0 30px 60px rgba(27,67,50,0.22), 0 8px 20px rgba(27,67,50,0.12);
+    z-index: 20;
+    transition: bottom 1s cubic-bezier(.22,1,.36,1);
+  }
+  .phone.out { bottom: -1450px; }
+  .phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 32px;
+    overflow: hidden;
+    background: var(--ground);
+  }
+  .phone-screen img {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    height: auto;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .phone-screen img.show { opacity: 1; }
+  .phone-notch {
+    position: absolute;
+    top: 16px; left: 50%;
+    transform: translateX(-50%);
+    width: 130px; height: 22px;
+    background: #111;
+    border-radius: 0 0 16px 16px;
+    z-index: 5;
+  }
+
+  /* ---------- Spotlight (feature callout) ---------- */
+  .spotlight {
+    position: absolute;
+    border: 5px solid var(--accent);
+    border-radius: 20px;
+    background: rgba(45,106,79,0.10);
+    box-shadow: 0 0 0 4000px rgba(0,0,0,0.28);
+    opacity: 0;
+    z-index: 8;
+    pointer-events: none;
+    transition: left 0.4s cubic-bezier(.22,1,.36,1), top 0.4s cubic-bezier(.22,1,.36,1),
+                width 0.4s cubic-bezier(.22,1,.36,1), height 0.4s cubic-bezier(.22,1,.36,1);
+  }
+  .spotlight.show { opacity: 1; animation: spotPulse 1.3s ease-in-out infinite; }
+  @keyframes spotPulse {
+    0%, 100% { box-shadow: 0 0 0 4000px rgba(0,0,0,0.28), 0 0 0 0 rgba(45,106,79,0.55); }
+    50% { box-shadow: 0 0 0 4000px rgba(0,0,0,0.28), 0 0 0 14px rgba(45,106,79,0); }
+  }
+
+  /* ---------- Outro ---------- */
+  .wordmark {
+    position: absolute;
+    left: 50%; top: 1010px;
+    transform: translate(-50%, 20px);
+    font-family: var(--font-display);
+    font-size: 96px;
+    color: var(--ink);
+    text-align: center;
+    opacity: 0;
+    z-index: 40;
+  }
+  .wordmark.show { animation: riseIn 0.7s cubic-bezier(.22,1,.36,1) forwards; }
+  .cta {
+    position: absolute;
+    left: 50%; top: 1160px;
+    transform: translate(-50%, 20px);
+    font-family: var(--font-display);
+    font-size: 44px;
+    color: #fff;
+    background: var(--accent);
+    padding: 26px 56px;
+    border-radius: 999px;
+    opacity: 0;
+    z-index: 40;
+    box-shadow: 0 12px 0 rgba(27,67,50,0.18);
+  }
+  .cta.show { animation: riseIn 0.7s cubic-bezier(.22,1,.36,1) 0.15s forwards; }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translate(-50%, 30px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  .spark {
+    position: absolute;
+    width: 18px; height: 18px;
+    background: var(--accent);
+    border-radius: 3px;
+    opacity: 0;
+    z-index: 45;
+  }
+
+  .dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    opacity: 0;
+    z-index: 15;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .dim.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <div class="dim" id="dim"></div>
+
+  <div class="phone" id="phone">
+    <div class="phone-notch"></div>
+    <div class="phone-screen" id="phoneScreen">
+      <img src="../../promo_screenshots/01_calendar_bean_colors_and_summary.png" data-key="calendar" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" class="show" />
+      <img src="../../promo_screenshots/02_match_registration_form.png" data-key="register" style="clip-path: inset(0 0 calc(100% - 1244px) 0);" />
+      <img src="../../promo_screenshots/03_match_detail_ranking_mvp.png" data-key="detail" style="clip-path: inset(0 0 calc(100% - 1149px) 0);" />
+      <img src="../../promo_screenshots/04_share_card_modal.png" data-key="share" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/05_stats_03_court_type.png" data-key="stats-court" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/05_stats_05_partner.png" data-key="stats-partner" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/05_stats_06_opponent.png" data-key="stats-opponent" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/06_growth_01_trend.png" data-key="growth-trend" style="clip-path: inset(0 0 calc(100% - 1890px) 0);" />
+      <img src="../../promo_screenshots/06_growth_03_partner_compat.png" data-key="growth-partner" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/06_growth_04_nemesis.png" data-key="growth-nemesis" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <img src="../../promo_screenshots/07_profile_tab.png" data-key="profile" style="clip-path: inset(0 0 calc(100% - 1688px) 0);" />
+      <div class="spotlight" id="spotlight"></div>
+    </div>
+  </div>
+
+  <div class="bean-wrap hop-in" id="bean" data-tone="brand">
+    <div class="bean-inner" id="beanInner">
+      <svg class="bean-svg" viewBox="0 0 100 100">
+        <g transform="translate(50,52) rotate(-22)">
+          <rect class="bean-body-shape" x="-19" y="-27" width="38" height="54" rx="19"></rect>
+          <ellipse class="bean-shine" cx="-9" cy="-15" rx="5" ry="8" transform="rotate(18 -9 -15)"></ellipse>
+        </g>
+        <g transform="translate(50,52) rotate(22)">
+          <circle class="bean-eye" cx="-8.5" cy="-2" r="2.6"></circle>
+          <circle class="bean-eye" cx="8.5" cy="-2" r="2.6"></circle>
+          <ellipse class="bean-cheek" cx="-18" cy="6" rx="4.6" ry="2.8"></ellipse>
+          <ellipse class="bean-cheek" cx="18" cy="6" rx="4.6" ry="2.8"></ellipse>
+          <path class="bean-smile" d="M -6.5 7.5 Q 0 12.5 6.5 7.5" fill="none" stroke-width="2.4" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="bubble" id="bubble"></div>
+  <div class="caption" id="caption"></div>
+  <div class="tier-row" id="tierRow">
+    <div class="tier-icon" data-tone="lime" id="tier1">
+      <svg class="tier-svg" viewBox="0 0 100 100">
+        <g transform="translate(50,52) rotate(-22)">
+          <rect class="tier-body" x="-19" y="-27" width="38" height="54" rx="19"></rect>
+        </g>
+        <g transform="translate(50,52) rotate(22)">
+          <circle class="tier-eye" cx="-8.5" cy="-2" r="3.2"></circle>
+          <circle class="tier-eye" cx="8.5" cy="-2" r="3.2"></circle>
+          <path class="tier-smile" d="M -6.5 7.5 Q 0 12.5 6.5 7.5" fill="none" stroke-width="3" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+    <div class="tier-icon" data-tone="green" id="tier2">
+      <svg class="tier-svg" viewBox="0 0 100 100">
+        <g transform="translate(50,52) rotate(-22)">
+          <rect class="tier-body" x="-19" y="-27" width="38" height="54" rx="19"></rect>
+        </g>
+        <g transform="translate(50,52) rotate(22)">
+          <circle class="tier-eye" cx="-8.5" cy="-2" r="3.2"></circle>
+          <circle class="tier-eye" cx="8.5" cy="-2" r="3.2"></circle>
+          <path class="tier-smile" d="M -6.5 7.5 Q 0 12.5 6.5 7.5" fill="none" stroke-width="3" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+    <div class="tier-icon" data-tone="default" id="tier3">
+      <svg class="tier-svg" viewBox="0 0 100 100">
+        <g transform="translate(50,52) rotate(-22)">
+          <rect class="tier-body" x="-19" y="-27" width="38" height="54" rx="19"></rect>
+        </g>
+        <g transform="translate(50,52) rotate(22)">
+          <circle class="tier-eye" cx="-8.5" cy="-2" r="3.2"></circle>
+          <circle class="tier-eye" cx="8.5" cy="-2" r="3.2"></circle>
+          <path class="tier-smile" d="M -6.5 7.5 Q 0 12.5 6.5 7.5" fill="none" stroke-width="3" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+    <div class="tier-icon" data-tone="black" id="tier4">
+      <svg class="tier-svg" viewBox="0 0 100 100">
+        <g transform="translate(50,52) rotate(-22)">
+          <rect class="tier-body" x="-19" y="-27" width="38" height="54" rx="19"></rect>
+        </g>
+        <g transform="translate(50,52) rotate(22)">
+          <circle class="tier-eye" cx="-8.5" cy="-2" r="3.2"></circle>
+          <circle class="tier-eye" cx="8.5" cy="-2" r="3.2"></circle>
+          <path class="tier-smile" d="M -6.5 7.5 Q 0 12.5 6.5 7.5" fill="none" stroke-width="3" stroke-linecap="round"></path>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="wordmark" id="wordmark">테니콩</div>
+  <div class="cta" id="cta">지금 시작해보세요</div>
+
+</div>
+
+<script>
+  const bean = document.getElementById('bean');
+  const beanInner = document.getElementById('beanInner');
+  const bubble = document.getElementById('bubble');
+  const caption = document.getElementById('caption');
+  const phone = document.getElementById('phone');
+  const spotlight = document.getElementById('spotlight');
+  const dim = document.getElementById('dim');
+  const wordmark = document.getElementById('wordmark');
+  const cta = document.getElementById('cta');
+  const stage = document.getElementById('stage');
+  const tierIcons = [
+    document.getElementById('tier1'),
+    document.getElementById('tier2'),
+    document.getElementById('tier3'),
+    document.getElementById('tier4'),
+  ];
+
+  function showBubble(html) {
+    bubble.classList.remove('show', 'hide');
+    bubble.innerHTML = html;
+    void bubble.offsetWidth;
+    bubble.classList.add('show');
+  }
+  function hideBubble() {
+    bubble.classList.remove('show');
+    bubble.classList.add('hide');
+  }
+  function showCaption(title, sub) {
+    caption.classList.remove('show', 'hide');
+    caption.innerHTML = title + '<span class="sub" id="captionSub">' + (sub || '') + '</span>';
+    void caption.offsetWidth;
+    caption.classList.add('show');
+  }
+  function updateSub(sub) {
+    const el = document.getElementById('captionSub');
+    if (!el) return;
+    el.classList.remove('sub-fade');
+    el.innerHTML = sub;
+    void el.offsetWidth;
+    el.classList.add('sub-fade');
+  }
+  // phone-screen height per scene: content height (native crop px * 0.7538 scale) + a small breathing buffer,
+  // so the phone frame hugs each screen instead of leaving blank space below shorter content.
+  function swapScreen(key) {
+    document.querySelectorAll('.phone-screen img').forEach((img) => {
+      img.classList.toggle('show', img.dataset.key === key);
+    });
+  }
+  // rect: {left, top, width, height} in % of the phone screen area
+  function setSpotlight(rect) {
+    spotlight.style.left = rect.left + '%';
+    spotlight.style.top = rect.top + '%';
+    spotlight.style.width = rect.width + '%';
+    spotlight.style.height = rect.height + '%';
+    spotlight.classList.add('show');
+  }
+  function hideSpotlight() {
+    spotlight.classList.remove('show');
+  }
+  function popTier(i) {
+    tierIcons[i].classList.add('pop');
+  }
+  function resetTiers() {
+    tierIcons.forEach((el) => el.classList.remove('pop'));
+  }
+  function spark(x, y) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    stage.appendChild(s);
+    const dx = (Math.random() - 0.5) * 220;
+    const dy = -120 - Math.random() * 160;
+    const rot = Math.random() * 360;
+    s.animate(
+      [
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg)`, opacity: 0 },
+      ],
+      { duration: 900 + Math.random() * 400, easing: 'cubic-bezier(.22,1,.36,1)' },
+    );
+    setTimeout(() => s.remove(), 1400);
+  }
+  function burst(cx, cy, n) {
+    for (let i = 0; i < n; i += 1) setTimeout(() => spark(cx, cy), i * 30);
+  }
+
+  const t = (ms, fn) => setTimeout(fn, ms);
+
+  function setIdle(on) {
+    beanInner.classList.toggle('idle', on);
+  }
+  function reactOnce(cls, dur) {
+    setIdle(false);
+    beanInner.classList.remove(cls);
+    void beanInner.offsetWidth;
+    beanInner.classList.add(cls);
+    t(dur, () => {
+      beanInner.classList.remove(cls);
+      setIdle(true);
+    });
+  }
+
+  // ==== Timeline ====
+  // 0s: calendar phone is already visible; bean hops in BIG & centered in front of it.
+
+  t(1900, () => {
+    setIdle(true);
+    dim.classList.add('show');
+    showBubble('안녕하세요!<br>나만의 테니스 성장친구<br>테니콩이예요!');
+  });
+
+  t(4300, () => {
+    showBubble('지금부터 테니콩의<br>기능을 소개할게요!');
+  });
+
+  // ---- 메인화면이예요! ----
+  t(6300, () => {
+    hideBubble();
+    dim.classList.remove('show');
+    bean.classList.add('hidden');
+    swapScreen('calendar');
+    showCaption('메인화면이예요!', '캘린더에서 이번달 기록을<br>한눈에 확인할 수 있어요');
+    setSpotlight({ left: 2, top: 26.7, width: 96, height: 48.8 });
+  });
+
+  // ---- 이번달 경기기록 확인 ----
+  t(8700, () => {
+    showCaption('이번달 경기기록 확인', '승률·승·패·무·경기일수<br>경기횟수·연승기록까지 한눈에');
+    setSpotlight({ left: 4, top: 8.5, width: 92, height: 16.8 });
+  });
+
+  // ---- 날짜별 경기보기 ----
+  t(12000, () => {
+    hideSpotlight();
+    swapScreen('calendar');
+    showCaption('날짜별 경기보기', '경기 내용을 요약해서 보고<br>오늘의 MVP까지 확인해요');
+    setSpotlight({ left: 2, top: 76.2, width: 96, height: 22.9 });
+  });
+
+  // ---- 경기내용 공유 ----
+  t(15200, () => {
+    swapScreen('share');
+    showCaption('경기내용 공유', '결과와 MVP, 순위까지<br>친구에게 바로 공유해요');
+    setSpotlight({ left: 6, top: 22.1, width: 88, height: 55 });
+  });
+
+  // ---- 경기 등록: 포지션, 메모, 콩 색깔 4단계 ----
+  t(18400, () => {
+    swapScreen('register');
+    showCaption('경기 등록', '포지션까지 정확하게 기록해요');
+    setSpotlight({ left: 8, top: 42, width: 84, height: 6.1 });
+  });
+  t(19800, () => {
+    updateSub('아쉬웠던 순간은 메모로 남겨요');
+    setSpotlight({ left: 8, top: 61.7, width: 84, height: 7.7 });
+  });
+  t(21200, () => {
+    updateSub('많이 기록할수록 콩 색깔이 진해져요!');
+    setSpotlight({ left: 8, top: 55, width: 84, height: 4.5 });
+  });
+  t(21900, () => { bean.dataset.tone = 'lime'; reactOnce('levelup', 500); burst(275, 1845, 8); popTier(0); });
+  t(22800, () => { bean.dataset.tone = 'green'; reactOnce('levelup', 500); burst(275, 1845, 10); popTier(1); });
+  t(23700, () => { bean.dataset.tone = 'default'; reactOnce('levelup', 500); burst(275, 1845, 10); popTier(2); });
+  t(24600, () => { bean.dataset.tone = 'black'; reactOnce('levelup', 500); burst(275, 1845, 14); popTier(3); });
+
+  // ---- 통계 ----
+  t(26500, () => {
+    bean.dataset.tone = 'brand';
+    resetTiers();
+    swapScreen('stats-court');
+    showCaption('통계', '코트별 승률을 확인해요');
+    setSpotlight({ left: 4, top: 39.9, width: 92, height: 30.3 });
+  });
+  t(27900, () => {
+    swapScreen('stats-partner');
+    updateSub('페어별 승률도 확인해요');
+    setSpotlight({ left: 4, top: 60.5, width: 92, height: 24.2 });
+  });
+  t(29300, () => {
+    swapScreen('stats-opponent');
+    updateSub('상대별 승률까지 확인해요');
+    setSpotlight({ left: 4, top: 68.8, width: 92, height: 30.3 });
+  });
+
+  // ---- 성장 ----
+  t(31100, () => {
+    swapScreen('growth-trend');
+    showCaption('성장', '나의 성장 그래프를 확인해요');
+    setSpotlight({ left: 4, top: 9.7, width: 92, height: 75.4 });
+  });
+  t(32500, () => {
+    swapScreen('growth-partner');
+    updateSub('환상의 페어는 누구인지도!');
+    setSpotlight({ left: 4, top: 28.9, width: 92, height: 54.5 });
+  });
+  t(33900, () => {
+    swapScreen('growth-nemesis');
+    updateSub('최악의 상대(천적)까지 알 수 있어요');
+    setSpotlight({ left: 4, top: 38.6, width: 92, height: 48.4 });
+  });
+
+  // ---- 마이페이지 ----
+  t(36300, () => {
+    swapScreen('profile');
+    showCaption('마이페이지', '계정 관리부터<br>개선 요청까지 보낼 수 있어요');
+    setSpotlight({ left: 4, top: 54.5, width: 92, height: 4.9 });
+  });
+
+  // ---- Outro ----
+  t(39500, () => {
+    caption.classList.remove('show');
+    caption.classList.add('hide');
+    hideSpotlight();
+    phone.classList.add('out');
+    bean.classList.remove('hidden');
+    bean.classList.add('center-final');
+    bean.dataset.tone = 'brand';
+    t(900, () => {
+      setIdle(true);
+      wordmark.classList.add('show');
+      cta.classList.add('show');
+      burst(540, 900, 20);
+    });
+  });
+
+  window.__introDone = false;
+  t(42500, () => { window.__introDone = true; });
+</script>
+</body>
+</html>
