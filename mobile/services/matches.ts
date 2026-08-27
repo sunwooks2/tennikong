@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type {
   CourtType,
   Match,
+  MatchType,
   MonthlySummary,
 } from '@/types/database';
 import { getMonthRange } from '@/utils/date';
@@ -101,6 +102,33 @@ export async function hasAnyMatches(userId: string): Promise<boolean> {
 
   if (error) throw new Error(error.message);
   return (count ?? 0) > 0;
+}
+
+export async function fetchMostFrequentMatchType(userId: string): Promise<MatchType | null> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('match_type')
+    .eq('user_id', userId)
+    .is('deleted_at', null);
+
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) return null;
+
+  const counts = new Map<MatchType, number>();
+  for (const row of data as { match_type: MatchType }[]) {
+    counts.set(row.match_type, (counts.get(row.match_type) ?? 0) + 1);
+  }
+
+  let topType: MatchType | null = null;
+  let topCount = 0;
+  for (const [type, count] of counts) {
+    if (count > topCount) {
+      topType = type;
+      topCount = count;
+    }
+  }
+
+  return topType;
 }
 
 export async function fetchAllMatches() {

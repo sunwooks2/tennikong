@@ -19,6 +19,7 @@ import Colors from '@/constants/Colors';
 import type { CourtType } from '@/types/database';
 import {
   createMatches,
+  fetchMostFrequentMatchType,
   fetchPlayerSuggestions,
   hasAnyMatches,
   updateRegistration,
@@ -87,6 +88,21 @@ export function MatchForm({
       );
     }
   }, [defaultMyName, isEdit]);
+
+  useEffect(() => {
+    if (isEdit) return;
+
+    fetchMostFrequentMatchType(userId)
+      .then((matchType) => {
+        if (!matchType) return;
+        setEntryInputs((current) =>
+          current.length === 1 && current[0].match_type === 'mens_doubles'
+            ? [{ ...current[0], match_type: matchType }]
+            : current,
+        );
+      })
+      .catch(() => {});
+  }, [isEdit, userId]);
 
   const loadPlayerSuggestions = useCallback(async (query: string) => {
     const { data } = await fetchPlayerSuggestions(query);

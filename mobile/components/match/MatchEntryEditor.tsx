@@ -42,6 +42,8 @@ export function MatchEntryEditor({
     onChange(next);
   };
 
+  const rosterOptions = getSelectableRosterOptions(roster);
+
   const updateLineupSlot = (index: number, field: LineupField, value: string) => {
     const entry = entries[index];
     const previous = entry[field];
@@ -62,10 +64,22 @@ export function MatchEntryEditor({
       }
     }
 
+    // 선수가 딱 4명이면 3자리가 채워지는 순간 마지막 자리는 정해져 있으므로 자동으로 채운다.
+    if (rosterOptions.length === 4) {
+      const next = { ...entry, ...patch };
+      const filled = LINEUP_FIELDS.map((f) => next[f]).filter((v) => v.length > 0);
+      const emptyFields = LINEUP_FIELDS.filter((f) => next[f].length === 0);
+
+      if (filled.length === 3 && emptyFields.length === 1) {
+        const remaining = rosterOptions.find((name) => !filled.includes(name));
+        if (remaining) {
+          patch[emptyFields[0]] = remaining;
+        }
+      }
+    }
+
     updateEntry(index, patch);
   };
-
-  const rosterOptions = getSelectableRosterOptions(roster);
 
   const addEntry = () => {
     const last = entries[entries.length - 1];
