@@ -30,7 +30,7 @@ export function PlayerSlotSelect({
         <Text
           style={[styles.slotValue, { color: value ? colors.text : colors.muted }]}
           numberOfLines={1}>
-          {value}
+          {value || ' '}
         </Text>
       </Pressable>
 
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
   slotValue: {
     fontSize: 10,
     fontWeight: '700',
+    lineHeight: 13,
     maxWidth: '100%',
   },
   overlay: {
