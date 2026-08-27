@@ -198,6 +198,8 @@ export function MatchEntryEditor({
                   </View>
                 </View>
               </View>
+
+              <View style={styles.resultSpacer} />
             </View>
 
             <View style={styles.entryMainRow}>
@@ -359,8 +361,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     marginLeft: 4,
-    minWidth: 14,
+    width: 14,
     textAlign: 'center',
+  },
+  resultSpacer: {
+    flexShrink: 0,
+    marginLeft: 4,
+    width: 14,
   },
   removeBtn: {
     position: 'absolute',
