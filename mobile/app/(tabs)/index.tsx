@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { BeanIcon } from '@/components/brand/BeanIcon';
 import { StreakBadge } from '@/components/calendar/StreakBadge';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
@@ -73,11 +73,12 @@ export default function CalendarScreen() {
             <Text style={[styles.modalDesc, { color: colors.muted }]}>
               경기를 기록하고{'\n'}나만의 테니스 성장을 확인해보세요.
             </Text>
-            <Pressable
+            <TrackedPressable
+              eventName="welcome_modal_start"
               style={[styles.modalButton, { backgroundColor: colors.tint }]}
               onPress={() => setShowWelcome(false)}>
               <Text style={styles.modalButtonText}>시작하기</Text>
-            </Pressable>
+            </TrackedPressable>
           </View>
         </View>
       </Modal>
@@ -141,11 +142,13 @@ export default function CalendarScreen() {
             <Text style={[styles.bannerText, { color: colors.muted }]}>
               로그인 후 경기 기록을 확인할 수 있습니다.
             </Text>
-            <Pressable onPress={() => router.push('/(tabs)/profile')}>
+            <TrackedPressable
+              eventName="calendar_auth_banner_login_link"
+              onPress={() => router.push('/(tabs)/profile')}>
               <Text style={[styles.bannerLink, { color: colors.tint }]}>
                 마이페이지에서 로그인 →
               </Text>
-            </Pressable>
+            </TrackedPressable>
           </View>
         )}
 

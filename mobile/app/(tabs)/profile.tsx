@@ -3,12 +3,12 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { SocialLoginButtons } from '@/components/auth/SocialLoginButtons';
 import { FeedbackModal } from '@/components/profile/FeedbackModal';
 import { Text } from '@/components/Themed';
@@ -113,14 +113,16 @@ export default function ProfileScreen() {
             <Text style={[styles.menuValue, { color: colors.muted }]}>{providerLabel}</Text>
           </View>
 
-          <Pressable
+          <TrackedPressable
+            eventName="profile_open_feedback"
             onPress={() => setFeedbackOpen(true)}
             style={[styles.menuItem, { backgroundColor: colors.card }]}>
             <Text style={[styles.menuText, { color: colors.text }]}>개선제안</Text>
             <Text style={{ color: colors.muted }}>›</Text>
-          </Pressable>
+          </TrackedPressable>
 
-          <Pressable
+          <TrackedPressable
+            eventName="profile_sign_out"
             onPress={handleSignOut}
             disabled={signingOut}
             style={[styles.logoutButton, { borderColor: colors.loss }]}>
@@ -129,7 +131,7 @@ export default function ProfileScreen() {
             ) : (
               <Text style={[styles.logoutText, { color: colors.loss }]}>로그아웃</Text>
             )}
-          </Pressable>
+          </TrackedPressable>
 
           {user ? (
             <FeedbackModal

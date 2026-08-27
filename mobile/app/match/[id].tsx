@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { MatchDetailContent } from '@/components/match/MatchDetailContent';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -108,12 +108,14 @@ export default function MatchDetailScreen() {
       </ScrollView>
 
       <View style={[styles.actions, { backgroundColor: colors.background, borderColor: colors.muted }]}>
-        <Pressable
+        <TrackedPressable
+          eventName="match_detail_edit"
           onPress={() => id && router.push({ pathname: '/match/edit/[id]', params: { id } })}
           style={[styles.editButton, { backgroundColor: colors.tint }]}>
           <Text style={styles.buttonText}>수정</Text>
-        </Pressable>
-        <Pressable
+        </TrackedPressable>
+        <TrackedPressable
+          eventName="match_detail_delete"
           onPress={handleDelete}
           disabled={deleting}
           style={[styles.deleteButton, { borderColor: colors.loss, opacity: deleting ? 0.7 : 1 }]}>
@@ -122,7 +124,7 @@ export default function MatchDetailScreen() {
           ) : (
             <Text style={[styles.deleteText, { color: colors.loss }]}>삭제</Text>
           )}
-        </Pressable>
+        </TrackedPressable>
       </View>
     </View>
   );

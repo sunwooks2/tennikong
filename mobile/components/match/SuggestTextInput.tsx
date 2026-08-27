@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 
@@ -58,15 +59,16 @@ export function SuggestTextInput({
       {focused && suggestions.length > 0 && (
         <View style={[styles.suggestions, { backgroundColor: colors.card, borderColor: colors.muted }]}>
           {suggestions.map((name) => (
-            <Pressable
+            <TrackedPressable
               key={name}
+              eventName="suggest_text_input_select"
               onPress={() => {
                 onChange(name);
                 setFocused(false);
               }}
               style={styles.suggestionItem}>
               <Text style={{ color: colors.text }}>{name}</Text>
-            </Pressable>
+            </TrackedPressable>
           ))}
         </View>
       )}

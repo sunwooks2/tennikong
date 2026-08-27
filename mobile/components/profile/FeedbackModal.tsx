@@ -4,12 +4,12 @@ import {
   Alert,
   Modal,
   Platform,
-  Pressable,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { SelectBox } from '@/components/match/SelectBox';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -79,9 +79,9 @@ export function FeedbackModal({ visible, onClose, userId, colors }: FeedbackModa
         <View style={[styles.card, { backgroundColor: colors.card }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>개선제안</Text>
-            <Pressable onPress={handleClose} hitSlop={8}>
+            <TrackedPressable eventName="feedback_modal_close_icon" onPress={handleClose} hitSlop={8}>
               <Text style={[styles.close, { color: colors.muted }]}>✕</Text>
-            </Pressable>
+            </TrackedPressable>
           </View>
 
           <Text style={[styles.desc, { color: colors.muted }]}>
@@ -129,13 +129,15 @@ export function FeedbackModal({ visible, onClose, userId, colors }: FeedbackModa
           </View>
 
           <View style={styles.actions}>
-            <Pressable
+            <TrackedPressable
+              eventName="feedback_modal_cancel"
               onPress={handleClose}
               disabled={submitting}
               style={[styles.cancelButton, { borderColor: colors.muted }]}>
               <Text style={[styles.cancelText, { color: colors.text }]}>취소</Text>
-            </Pressable>
-            <Pressable
+            </TrackedPressable>
+            <TrackedPressable
+              eventName="feedback_modal_submit"
               onPress={handleSubmit}
               disabled={submitting}
               style={[
@@ -147,7 +149,7 @@ export function FeedbackModal({ visible, onClose, userId, colors }: FeedbackModa
               ) : (
                 <Text style={styles.submitText}>보내기</Text>
               )}
-            </Pressable>
+            </TrackedPressable>
           </View>
         </View>
       </View>

@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { BeanIcon } from '@/components/brand/BeanIcon';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -71,8 +72,10 @@ export function CalendarGrid({
                   : colors.text;
 
           return (
-            <Pressable
+            <TrackedPressable
               key={cell.dateKey}
+              eventName="calendar_day_select"
+              eventMeta={{ date: cell.dateKey }}
               style={styles.cell}
               onPress={() => onSelectDate(cell.dateKey)}>
               <View
@@ -102,7 +105,7 @@ export function CalendarGrid({
                   </View>
                 )}
               </View>
-            </Pressable>
+            </TrackedPressable>
           );
         })}
       </View>

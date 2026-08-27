@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { formatMonthLabel } from '@/utils/date';
@@ -26,14 +27,15 @@ export function MonthNavigator({
 }: MonthNavigatorProps) {
   return (
     <View style={styles.row}>
-      <Pressable
+      <TrackedPressable
+        eventName="month_nav_previous"
         onPress={onPrevious}
         style={[styles.navButton, { backgroundColor: colors.card }]}
         hitSlop={8}>
         <Text style={[styles.navText, { color: colors.text }]}>‹</Text>
-      </Pressable>
+      </TrackedPressable>
 
-      <Pressable onPress={onToday} style={styles.center}>
+      <TrackedPressable eventName="month_nav_today" onPress={onToday} style={styles.center}>
         <Text style={[styles.label, { color: colors.text }]}>
           {formatMonthLabel(year, month)}
         </Text>
@@ -41,14 +43,15 @@ export function MonthNavigator({
           <Text style={[styles.todayHint, { color: colors.muted }]}>오늘로 이동</Text>
           {hintExtra}
         </View>
-      </Pressable>
+      </TrackedPressable>
 
-      <Pressable
+      <TrackedPressable
+        eventName="month_nav_next"
         onPress={onNext}
         style={[styles.navButton, { backgroundColor: colors.card }]}
         hitSlop={8}>
         <Text style={[styles.navText, { color: colors.text }]}>›</Text>
-      </Pressable>
+      </TrackedPressable>
     </View>
   );
 }

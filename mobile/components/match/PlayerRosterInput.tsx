@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import {
-  Pressable,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { MY_ROSTER_LABEL, type PlayerRoster } from '@/utils/matchForm';
@@ -121,7 +121,8 @@ export function PlayerRosterInput({
                 placeholder={`선수${index + 4}`}
                 placeholderTextColor={colors.muted}
               />
-              <Pressable
+              <TrackedPressable
+                eventName="player_roster_remove_extra"
                 onPress={() => removeExtraPlayer(index)}
                 hitSlop={8}
                 style={[
@@ -129,27 +130,29 @@ export function PlayerRosterInput({
                   { backgroundColor: colors.card, borderColor: colors.loss },
                 ]}>
                 <Text style={[styles.removeExtraText, { color: colors.loss }]}>✕</Text>
-              </Pressable>
+              </TrackedPressable>
             </View>
           ))}
         </View>
       )}
 
-      <Pressable
+      <TrackedPressable
+        eventName="player_roster_add_extra"
         onPress={addExtraPlayer}
         style={[styles.addButton, { borderColor: colors.tint }]}>
         <Text style={[styles.addText, { color: colors.tint }]}>+ 선수 추가</Text>
-      </Pressable>
+      </TrackedPressable>
 
       {activeField !== null && suggestions.length > 0 && (
         <View style={[styles.suggestions, { backgroundColor: colors.card, borderColor: colors.muted }]}>
           {suggestions.map((name) => (
-            <Pressable
+            <TrackedPressable
               key={name}
+              eventName="player_roster_suggestion_select"
               onPress={() => applySuggestion(name)}
               style={styles.suggestionItem}>
               <Text style={{ color: colors.text }}>{name}</Text>
-            </Pressable>
+            </TrackedPressable>
           ))}
         </View>
       )}

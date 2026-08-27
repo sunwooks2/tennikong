@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { BeanIcon } from '@/components/brand/BeanIcon';
 import { MatchForm } from '@/components/match/MatchForm';
 import { Text } from '@/components/Themed';
@@ -81,11 +82,12 @@ export default function MatchNewScreen() {
               앞으로도 꾸준히 기록해보세요.{'\n'}많은 경기를 등록할수록{'\n'}콩 색깔이 점점
               진해져요!
             </Text>
-            <Pressable
+            <TrackedPressable
+              eventName="first_match_modal_confirm"
               style={[styles.modalButton, { backgroundColor: colors.tint }]}
               onPress={handleCloseFirstMatchModal}>
               <Text style={styles.modalButtonText}>확인</Text>
-            </Pressable>
+            </TrackedPressable>
           </View>
         </View>
       </Modal>

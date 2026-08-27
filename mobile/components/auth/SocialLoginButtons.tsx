@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import {
@@ -76,8 +77,9 @@ export function SocialLoginButtons({ colors, onSuccess }: SocialLoginButtonsProp
   return (
     <View style={styles.container}>
       {PROVIDERS.map((provider) => (
-        <Pressable
+        <TrackedPressable
           key={provider.id}
+          eventName={`login_${provider.id}`}
           onPress={() => handleSignIn(provider.id)}
           disabled={loadingProvider !== null}
           style={({ pressed }) => [
@@ -95,7 +97,7 @@ export function SocialLoginButtons({ colors, onSuccess }: SocialLoginButtonsProp
               {provider.label}
             </Text>
           )}
-        </Pressable>
+        </TrackedPressable>
       ))}
     </View>
   );

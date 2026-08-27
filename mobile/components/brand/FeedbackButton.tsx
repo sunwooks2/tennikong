@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { LightbulbIcon } from '@/components/icons/LightbulbIcon';
 import { FeedbackModal } from '@/components/profile/FeedbackModal';
 import Colors from '@/constants/Colors';
@@ -25,9 +26,9 @@ export function FeedbackButton({ colors, userId }: FeedbackButtonProps) {
 
   return (
     <>
-      <Pressable onPress={handlePress} hitSlop={10} style={styles.button}>
+      <TrackedPressable eventName="feedback_button_header" onPress={handlePress} hitSlop={10} style={styles.button}>
         <LightbulbIcon size={22} />
-      </Pressable>
+      </TrackedPressable>
       {userId ? (
         <FeedbackModal
           visible={open}

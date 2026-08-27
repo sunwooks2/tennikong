@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import type { LabeledStats } from '@/utils/stats';
@@ -31,7 +32,9 @@ export function CollapsibleStatsSection({
 }: CollapsibleStatsSectionProps) {
   return (
     <View style={[styles.section, !isLast && { borderBottomColor: `${colors.muted}22`, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-      <Pressable
+      <TrackedPressable
+        eventName="stats_section_toggle"
+        eventMeta={{ title, expanded: !expanded }}
         onPress={onToggle}
         style={({ pressed }) => [
           styles.headerButton,
@@ -56,7 +59,7 @@ export function CollapsibleStatsSection({
           ) : null}
         </View>
         <Text style={[styles.chevron, { color: colors.muted }]}>{expanded ? '▾' : '▸'}</Text>
-      </Pressable>
+      </TrackedPressable>
 
       {expanded ? <View style={styles.body}>{children}</View> : null}
     </View>

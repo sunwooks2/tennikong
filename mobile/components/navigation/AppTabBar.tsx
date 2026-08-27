@@ -1,9 +1,10 @@
 import { SymbolView } from 'expo-symbols';
 import type { ReactNode } from 'react';
 import type { ColorValue } from 'react-native';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -73,8 +74,10 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
         };
 
         return (
-          <Pressable
+          <TrackedPressable
             key={route.key}
+            eventName="tab_bar_press"
+            eventMeta={{ tab: route.name }}
             onPress={onPress}
             style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
             accessibilityRole="button"
@@ -88,7 +91,7 @@ export function AppTabBar({ state, descriptors, navigation }: AppTabBarProps) {
             <Text style={[styles.label, { color }]} numberOfLines={1}>
               {label}
             </Text>
-          </Pressable>
+          </TrackedPressable>
         );
       })}
     </View>

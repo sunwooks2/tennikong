@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, StyleSheet, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { MatchShareCard } from '@/components/share/MatchShareCard';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
@@ -68,7 +69,8 @@ export function ShareResultModal({ visible, onClose, matches, colors }: ShareRes
           </View>
 
           <View style={styles.actions}>
-            <Pressable
+            <TrackedPressable
+              eventName="share_modal_close"
               onPress={onClose}
               disabled={sharing}
               style={[
@@ -76,8 +78,9 @@ export function ShareResultModal({ visible, onClose, matches, colors }: ShareRes
                 { backgroundColor: colors.card, borderColor: colors.muted },
               ]}>
               <Text style={[styles.cancelText, { color: colors.text }]}>닫기</Text>
-            </Pressable>
-            <Pressable
+            </TrackedPressable>
+            <TrackedPressable
+              eventName="share_modal_share"
               onPress={handleShare}
               disabled={sharing}
               style={[
@@ -89,7 +92,7 @@ export function ShareResultModal({ visible, onClose, matches, colors }: ShareRes
               ) : (
                 <Text style={styles.shareText}>공유하기</Text>
               )}
-            </Pressable>
+            </TrackedPressable>
           </View>
         </View>
       </View>

@@ -3,13 +3,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { MatchEntryEditor } from '@/components/match/MatchEntryEditor';
 import { PlayerRosterInput } from '@/components/match/PlayerRosterInput';
 import { SelectBox } from '@/components/match/SelectBox';
@@ -206,7 +206,8 @@ export function MatchForm({
           </View>
         </FormRow>
 
-        <Pressable
+        <TrackedPressable
+          eventName={isEdit ? 'match_form_submit_edit' : 'match_form_submit_new'}
           onPress={handleSubmit}
           disabled={submitting}
           style={[
@@ -218,7 +219,7 @@ export function MatchForm({
           ) : (
             <Text style={styles.submitText}>{isEdit ? '수정 저장' : '경기 등록'}</Text>
           )}
-        </Pressable>
+        </TrackedPressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );

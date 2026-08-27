@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { MATCH_TYPE_COLORS, MATCH_TYPE_LABELS, RESULT_LABELS } from '@/constants/labels';
@@ -24,8 +25,9 @@ export function RecentGamesList({ items, colors }: RecentGamesListProps) {
     <View style={styles.container}>
       <View style={styles.list}>
         {items.map((item) => (
-          <Pressable
+          <TrackedPressable
             key={item.id}
+            eventName="recent_games_item_open"
             onPress={() => router.push({ pathname: '/match/[id]', params: { id: item.matchId } })}
             style={({ pressed }) => [
               styles.row,
@@ -48,7 +50,7 @@ export function RecentGamesList({ items, colors }: RecentGamesListProps) {
               </View>
             </View>
             <Text style={[styles.score, { color: colors.text }]}>{item.scoreLabel}</Text>
-          </Pressable>
+          </TrackedPressable>
         ))}
       </View>
     </View>

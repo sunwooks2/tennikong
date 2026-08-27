@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import type { Match } from '@/types/database';
@@ -37,11 +38,12 @@ export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayList
             <Text style={[styles.holidayLabel, { color: colors.loss }]}>{holidayName}</Text>
           )}
         </View>
-        <Pressable
+        <TrackedPressable
+          eventName="match_day_add_button"
           onPress={goToNewMatch}
           style={[styles.addButton, { backgroundColor: colors.tint }]}>
           <Text style={styles.addButtonText}>+ 경기추가</Text>
-        </Pressable>
+        </TrackedPressable>
       </View>
 
       {loading ? (
@@ -51,11 +53,11 @@ export function MatchDayList({ dateKey, matches, loading, colors }: MatchDayList
           <Text style={[styles.emptyText, { color: colors.muted }]}>
             이 날 기록된 경기가 없습니다
           </Text>
-          <Pressable onPress={goToNewMatch}>
+          <TrackedPressable eventName="match_day_empty_add_link" onPress={goToNewMatch}>
             <Text style={[styles.emptyLink, { color: colors.tint }]}>
               첫 경기 기록하기 →
             </Text>
-          </Pressable>
+          </TrackedPressable>
         </View>
       ) : (
         <View style={styles.list}>

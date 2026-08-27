@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { PlayerSlotSelect } from '@/components/match/PlayerSlotSelect';
 import { ScoreStepper } from '@/components/match/ScoreStepper';
 import { SelectBox } from '@/components/match/SelectBox';
@@ -111,12 +112,13 @@ export function MatchEntryEditor({
         return (
           <View key={entry.entry_number} style={[styles.card, { backgroundColor: colors.card }]}>
             {canRemove ? (
-              <Pressable
+              <TrackedPressable
+                eventName="match_entry_remove"
                 onPress={() => removeEntry(index)}
                 hitSlop={8}
                 style={styles.removeBtn}>
                 <Text style={[styles.remove, { color: colors.loss }]}>✕</Text>
-              </Pressable>
+              </TrackedPressable>
             ) : null}
 
             <View style={styles.entryTypeRow}>
@@ -222,9 +224,12 @@ export function MatchEntryEditor({
       })}
 
       {allowAdd && (
-        <Pressable onPress={addEntry} style={[styles.addButton, { borderColor: colors.tint }]}>
+        <TrackedPressable
+          eventName="match_entry_add"
+          onPress={addEntry}
+          style={[styles.addButton, { borderColor: colors.tint }]}>
           <Text style={[styles.addText, { color: colors.tint }]}>+ 경기 추가</Text>
-        </Pressable>
+        </TrackedPressable>
       )}
     </View>
   );

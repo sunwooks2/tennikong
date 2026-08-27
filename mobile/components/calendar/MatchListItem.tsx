@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { Text } from '@/components/Themed';
 import { MemoIcon } from '@/components/icons/MemoIcon';
 import { ShareIcon } from '@/components/icons/ShareIcon';
@@ -37,7 +38,8 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
 
   return (
     <>
-      <Pressable
+      <TrackedPressable
+        eventName="match_list_item_open"
         onPress={() => router.push({ pathname: '/match/[id]', params: { id: primary.id } })}
         style={({ pressed }) => [
           styles.item,
@@ -55,7 +57,8 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
               {formatRegistrationRecord(wins, losses, draws)}
             </Text>
           </View>
-          <Pressable
+          <TrackedPressable
+            eventName="match_list_item_share_button"
             onPress={(e) => {
               e.stopPropagation?.();
               setShareOpen(true);
@@ -67,7 +70,7 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
             ]}>
             <ShareIcon size={12} color={colors.tint} />
             <Text style={[styles.shareText, { color: colors.tint }]}>공유</Text>
-          </Pressable>
+          </TrackedPressable>
         </View>
 
         {mvp ? (
@@ -115,7 +118,7 @@ export function MatchListItem({ matches, index, colors }: MatchListItemProps) {
             </Text>
           </View>
         ) : null}
-      </Pressable>
+      </TrackedPressable>
 
       <ShareResultModal
         visible={shareOpen}
