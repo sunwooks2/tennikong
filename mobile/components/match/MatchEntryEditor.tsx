@@ -201,13 +201,15 @@ export function MatchEntryEditor({
             </View>
 
             <View style={styles.entryMainRow}>
-              <Text style={[styles.result, { color: resultColor }]}>
-                {getResultLabel(result)}
-              </Text>
+              <View style={styles.indexSpacer} />
 
               <View style={styles.scoreArea}>
                 <View style={styles.scoreCell}>
-                  <View style={styles.teamLabelWrap} />
+                  <View style={styles.teamLabelWrap}>
+                    <Text style={[styles.result, { color: resultColor }]}>
+                      {getResultLabel(result)}
+                    </Text>
+                  </View>
                   <View style={styles.scoreStepperWrap}>
                     <ScoreStepper
                       value={entry.my_score}
@@ -261,7 +263,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    paddingRight: 22,
     gap: 8,
     width: '100%',
     overflow: 'hidden',
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   index: {
-    width: 14,
+    width: 30,
     flexShrink: 0,
     fontSize: 12,
     fontWeight: '700',
@@ -353,10 +354,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   result: {
-    flexShrink: 0,
     fontSize: 11,
     fontWeight: '700',
-    width: 14,
     textAlign: 'center',
   },
   removeBtn: {
