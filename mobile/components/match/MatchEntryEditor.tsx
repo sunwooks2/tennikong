@@ -241,7 +241,10 @@ export function MatchEntryEditor({
         <TrackedPressable
           eventName="match_entry_add"
           onPress={addEntry}
-          style={[styles.addButton, { borderColor: colors.tint }]}>
+          style={[
+            styles.addButton,
+            { backgroundColor: `${colors.tint}18`, borderColor: `${colors.tint}55` },
+          ]}>
           <Text style={[styles.addText, { color: colors.tint }]}>+ 경기 추가</Text>
         </TrackedPressable>
       )}
@@ -373,12 +376,11 @@ const styles = StyleSheet.create({
   addButton: {
     borderWidth: 1,
     borderRadius: 10,
-    borderStyle: 'dashed',
-    paddingVertical: 10,
+    paddingVertical: 11,
     alignItems: 'center',
   },
   addText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

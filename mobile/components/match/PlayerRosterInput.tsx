@@ -73,11 +73,11 @@ export function PlayerRosterInput({
             style={[
               styles.fixedSlot,
               {
-                borderColor: colors.tint,
-                backgroundColor: `${colors.tint}18`,
+                borderColor: colors.muted,
+                backgroundColor: `${colors.muted}18`,
               },
             ]}>
-            <Text style={[styles.fixedSlotText, { color: colors.tint }]}>{MY_ROSTER_LABEL}</Text>
+            <Text style={[styles.fixedSlotText, { color: colors.muted }]}>{MY_ROSTER_LABEL}</Text>
           </View>
         </View>
 
@@ -145,7 +145,10 @@ export function PlayerRosterInput({
       <TrackedPressable
         eventName="player_roster_add_extra"
         onPress={addExtraPlayer}
-        style={[styles.addButton, { borderColor: colors.tint }]}>
+        style={[
+          styles.addButton,
+          { backgroundColor: `${colors.tint}18`, borderColor: `${colors.tint}55` },
+        ]}>
         <Text style={[styles.addText, { color: colors.tint }]}>+ 선수 추가</Text>
       </TrackedPressable>
 
@@ -229,13 +232,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     borderWidth: 1,
     borderRadius: 8,
-    borderStyle: 'dashed',
-    paddingVertical: 8,
+    paddingVertical: 9,
     alignItems: 'center',
   },
   addText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   suggestions: {
     borderWidth: 1,
