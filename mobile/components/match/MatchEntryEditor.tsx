@@ -198,12 +198,12 @@ export function MatchEntryEditor({
                   </View>
                 </View>
               </View>
-
-              <View style={styles.resultSpacer} />
             </View>
 
             <View style={styles.entryMainRow}>
-              <View style={styles.indexSpacer} />
+              <Text style={[styles.result, { color: resultColor }]}>
+                {getResultLabel(result)}
+              </Text>
 
               <View style={styles.scoreArea}>
                 <View style={styles.scoreCell}>
@@ -230,10 +230,6 @@ export function MatchEntryEditor({
                   </View>
                 </View>
               </View>
-
-              <Text style={[styles.result, { color: resultColor }]}>
-                {getResultLabel(result)}
-              </Text>
             </View>
           </View>
         );
@@ -360,14 +356,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     fontSize: 11,
     fontWeight: '700',
-    marginLeft: 4,
     width: 14,
     textAlign: 'center',
-  },
-  resultSpacer: {
-    flexShrink: 0,
-    marginLeft: 4,
-    width: 14,
   },
   removeBtn: {
     position: 'absolute',
