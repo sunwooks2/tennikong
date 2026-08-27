@@ -34,14 +34,14 @@ export function PlayerRosterInput({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeField, setActiveField] = useState<ActiveField | null>(null);
 
-  const loadSuggestions = async (nextRoster: PlayerRoster, value: string) => {
-    onChange(nextRoster);
-    if (value.trim().length === 0) {
-      setSuggestions([]);
-      return;
-    }
+  const showSuggestionsFor = async (value: string) => {
     const data = await onFetchSuggestions(value);
     setSuggestions(data);
+  };
+
+  const loadSuggestions = (nextRoster: PlayerRoster, value: string) => {
+    onChange(nextRoster);
+    showSuggestionsFor(value);
   };
 
   const addExtraPlayer = () => {
@@ -90,7 +90,10 @@ export function PlayerRosterInput({
               ]}
               value={roster[key]}
               onChangeText={(value) => loadSuggestions({ ...roster, [key]: value }, value)}
-              onFocus={() => setActiveField(key)}
+              onFocus={() => {
+                setActiveField(key);
+                showSuggestionsFor(roster[key]);
+              }}
               onBlur={() => setTimeout(() => setActiveField((f) => (f === key ? null : f)), 150)}
               placeholder={placeholder}
               placeholderTextColor={colors.muted}
@@ -114,7 +117,10 @@ export function PlayerRosterInput({
                   next[index] = value;
                   loadSuggestions({ ...roster, extraPlayers: next }, value);
                 }}
-                onFocus={() => setActiveField(index)}
+                onFocus={() => {
+                  setActiveField(index);
+                  showSuggestionsFor(name);
+                }}
                 onBlur={() =>
                   setTimeout(() => setActiveField((f) => (f === index ? null : f)), 150)
                 }
