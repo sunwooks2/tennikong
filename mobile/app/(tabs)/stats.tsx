@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -9,6 +9,8 @@ import {
 
 import { MonthNavigator } from '@/components/calendar/MonthNavigator';
 import { MonthSummary } from '@/components/calendar/MonthSummary';
+import { OpponentDetailModal } from '@/components/stats/OpponentDetailModal';
+import { PartnerDetailModal } from '@/components/stats/PartnerDetailModal';
 import { RecentGamesList } from '@/components/stats/RecentGamesList';
 import {
   CollapsibleStatsSection,
@@ -22,6 +24,14 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useSession } from '@/hooks/useSession';
 import { useStats } from '@/hooks/useStats';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import {
+  computeOpponentDetail,
+  computePartnerDetail,
+  computePartnerList,
+  computePositionOpponentStats,
+  computePositionPartnerStats,
+  formatStatsRecord,
+} from '@/utils/stats';
 
 type StatsSectionId =
   | 'monthly'
@@ -54,6 +64,7 @@ export default function StatsScreen() {
     year,
     month,
     stats,
+    matches,
     loading,
     error,
     hasData,
@@ -63,11 +74,47 @@ export default function StatsScreen() {
     refresh,
   } = useStats({ enabled: isSupabaseConfigured && isAuthenticated });
 
+  const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
+  const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
+  const [positionExpanded, setPositionExpanded] = useState({ fore: false, back: false });
+
+  const togglePosition = useCallback((position: 'fore' | 'back') => {
+    setPositionExpanded((current) => ({ ...current, [position]: !current[position] }));
+  }, []);
+
   const toggleSection = useCallback((id: StatsSectionId) => {
     setExpanded((current) => ({ ...current, [id]: !current[id] }));
   }, []);
 
+  const partnerList = useMemo(() => computePartnerList(matches), [matches]);
+  const partnerDetail = useMemo(
+    () => (selectedPartner ? computePartnerDetail(matches, selectedPartner) : null),
+    [matches, selectedPartner],
+  );
+  const opponentDetail = useMemo(
+    () => (selectedOpponent ? computeOpponentDetail(matches, selectedOpponent) : null),
+    [matches, selectedOpponent],
+  );
+  const forePositionOpponents = useMemo(
+    () => computePositionOpponentStats(matches, 'fore'),
+    [matches],
+  );
+  const backPositionOpponents = useMemo(
+    () => computePositionOpponentStats(matches, 'back'),
+    [matches],
+  );
+  const forePositionPartners = useMemo(
+    () => computePositionPartnerStats(matches, 'fore'),
+    [matches],
+  );
+  const backPositionPartners = useMemo(
+    () => computePositionPartnerStats(matches, 'back'),
+    [matches],
+  );
+
   const showAuthBanner = isSupabaseConfigured && !sessionLoading && !isAuthenticated;
+  const foreStat = stats.byPosition.find((item) => item.key === 'fore');
+  const backStat = stats.byPosition.find((item) => item.key === 'back');
   const topWinWeekday = stats.byWeekday[0];
   const highlightWeekday =
     topWinWeekday && topWinWeekday.wins > 0 ? topWinWeekday.label : undefined;
@@ -79,8 +126,11 @@ export default function StatsScreen() {
       : '기록 없음';
 
   const partnerSummary =
-    stats.byPartner.length > 0
-      ? stats.byPartner.map((item) => `${item.label} ${item.win_rate}%`).join(' · ')
+    partnerList.length > 0
+      ? partnerList
+          .slice(0, 3)
+          .map((item) => `${item.label} ${item.win_rate}%`)
+          .join(' · ')
       : '기록 없음';
   const opponentSummary =
     stats.opponentsByWinRate.length > 0 || stats.opponentsByLossRate.length > 0
@@ -166,32 +216,25 @@ export default function StatsScreen() {
             <CollapsibleStatsSection
               title="페어별 통계"
               colors={colors}
-              hint="승률 높은 순 TOP 5"
+              hint="승률 높은 순 · 탭하면 상세보기"
               summary={partnerSummary}
               expanded={expanded.partner}
               onToggle={() => toggleSection('partner')}>
               <StatsRowList
-                items={stats.byPartner}
+                items={partnerList}
                 colors={colors}
                 emptyText="페어 경기 기록이 없습니다"
+                onPressItem={setSelectedPartner}
               />
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection
               title="상대별 통계"
               colors={colors}
-              hint="상대 1명 기준 · 전체 기간"
+              hint="상대 1명 기준 · 탭하면 상세보기"
               summary={opponentSummary}
               expanded={expanded.opponent}
               onToggle={() => toggleSection('opponent')}>
-              <View style={styles.subsectionBlock}>
-                <StatsSubsectionTitle title="승률 높은 순 TOP 4" colors={colors} />
-                <StatsRowList
-                  items={stats.opponentsByWinRate}
-                  colors={colors}
-                  emptyText="상대 전적이 없습니다"
-                />
-              </View>
               <View style={styles.subsectionBlock}>
                 <StatsSubsectionTitle title="패율 높은 순 TOP 5" colors={colors} />
                 <StatsRowList
@@ -199,6 +242,16 @@ export default function StatsScreen() {
                   colors={colors}
                   rateField="loss_rate"
                   emptyText="상대 전적이 없습니다"
+                  onPressItem={setSelectedOpponent}
+                />
+              </View>
+              <View style={styles.subsectionBlock}>
+                <StatsSubsectionTitle title="승률 높은 순 TOP 4" colors={colors} />
+                <StatsRowList
+                  items={stats.opponentsByWinRate}
+                  colors={colors}
+                  emptyText="상대 전적이 없습니다"
+                  onPressItem={setSelectedOpponent}
                 />
               </View>
             </CollapsibleStatsSection>
@@ -214,11 +267,80 @@ export default function StatsScreen() {
               }
               expanded={expanded.position}
               onToggle={() => toggleSection('position')}>
-              <StatsRowList
-                items={stats.byPosition}
-                colors={colors}
-                emptyText="포지션 기록이 없습니다"
-              />
+              <StatsMenuList colors={colors}>
+                <CollapsibleStatsSection
+                  title="포"
+                  colors={colors}
+                  summary={foreStat ? `${foreStat.total}경기 · ${formatStatsRecord(foreStat)} · ${foreStat.win_rate}%` : '기록 없음'}
+                  expanded={positionExpanded.fore}
+                  onToggle={() => togglePosition('fore')}>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="승률 높은 순 페어" colors={colors} />
+                    <StatsRowList
+                      items={forePositionPartners}
+                      colors={colors}
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedPartner}
+                    />
+                  </View>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="패율 높은 순 상대" colors={colors} />
+                    <StatsRowList
+                      items={forePositionOpponents.byLossRate}
+                      colors={colors}
+                      rateField="loss_rate"
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedOpponent}
+                    />
+                  </View>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="승률 높은 순 상대" colors={colors} />
+                    <StatsRowList
+                      items={forePositionOpponents.byWinRate}
+                      colors={colors}
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedOpponent}
+                    />
+                  </View>
+                </CollapsibleStatsSection>
+
+                <CollapsibleStatsSection
+                  title="백"
+                  colors={colors}
+                  summary={backStat ? `${backStat.total}경기 · ${formatStatsRecord(backStat)} · ${backStat.win_rate}%` : '기록 없음'}
+                  expanded={positionExpanded.back}
+                  onToggle={() => togglePosition('back')}
+                  isLast>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="승률 높은 순 페어" colors={colors} />
+                    <StatsRowList
+                      items={backPositionPartners}
+                      colors={colors}
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedPartner}
+                    />
+                  </View>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="패율 높은 순 상대" colors={colors} />
+                    <StatsRowList
+                      items={backPositionOpponents.byLossRate}
+                      colors={colors}
+                      rateField="loss_rate"
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedOpponent}
+                    />
+                  </View>
+                  <View style={styles.subsectionBlock}>
+                    <StatsSubsectionTitle title="승률 높은 순 상대" colors={colors} />
+                    <StatsRowList
+                      items={backPositionOpponents.byWinRate}
+                      colors={colors}
+                      emptyText="기록이 없습니다"
+                      onPressItem={setSelectedOpponent}
+                    />
+                  </View>
+                </CollapsibleStatsSection>
+              </StatsMenuList>
             </CollapsibleStatsSection>
 
             <CollapsibleStatsSection
@@ -251,6 +373,20 @@ export default function StatsScreen() {
           )}
         </>
       )}
+
+      <PartnerDetailModal
+        visible={!!selectedPartner}
+        onClose={() => setSelectedPartner(null)}
+        detail={partnerDetail}
+        colors={colors}
+      />
+
+      <OpponentDetailModal
+        visible={!!selectedOpponent}
+        onClose={() => setSelectedOpponent(null)}
+        detail={opponentDetail}
+        colors={colors}
+      />
     </ScrollView>
   );
 }

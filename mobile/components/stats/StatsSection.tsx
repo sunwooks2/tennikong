@@ -83,6 +83,7 @@ interface StatsRowListProps {
   emptyText?: string;
   highlightLabel?: string;
   rateField?: 'win_rate' | 'loss_rate';
+  onPressItem?: (key: string) => void;
 }
 
 export function StatsRowList({
@@ -91,6 +92,7 @@ export function StatsRowList({
   emptyText = '기록이 없습니다',
   highlightLabel,
   rateField = 'win_rate',
+  onPressItem,
 }: StatsRowListProps) {
   if (items.length === 0) {
     return <Text style={[styles.empty, { color: colors.muted }]}>{emptyText}</Text>;
@@ -102,15 +104,13 @@ export function StatsRowList({
         const highlighted = highlightLabel === item.label;
         const isLast = index === items.length - 1;
         const rateValue = item[rateField];
-
-        return (
-          <View
-            key={item.key}
-            style={[
-              styles.row,
-              !isLast && { borderBottomColor: `${colors.muted}22`, borderBottomWidth: StyleSheet.hairlineWidth },
-              highlighted && { backgroundColor: `${colors.tint}10` },
-            ]}>
+        const rowStyle = [
+          styles.row,
+          !isLast && { borderBottomColor: `${colors.muted}22`, borderBottomWidth: StyleSheet.hairlineWidth },
+          highlighted && { backgroundColor: `${colors.tint}10` },
+        ];
+        const rowContent = (
+          <>
             <Text
               style={[styles.rowLabel, { color: highlighted ? colors.tint : colors.text }]}
               numberOfLines={1}>
@@ -122,6 +122,26 @@ export function StatsRowList({
             <Text style={[styles.rowRate, { color: rateField === 'loss_rate' ? colors.loss : colors.tint }]}>
               {rateValue}%
             </Text>
+            {onPressItem ? <Text style={[styles.rowChevron, { color: colors.muted }]}>›</Text> : null}
+          </>
+        );
+
+        if (onPressItem) {
+          return (
+            <TrackedPressable
+              key={item.key}
+              eventName="stats_row_select"
+              eventMeta={{ key: item.key }}
+              onPress={() => onPressItem(item.key)}
+              style={rowStyle}>
+              {rowContent}
+            </TrackedPressable>
+          );
+        }
+
+        return (
+          <View key={item.key} style={rowStyle}>
+            {rowContent}
           </View>
         );
       })}
@@ -217,6 +237,11 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 14,
     fontWeight: '700',
+    flexShrink: 0,
+  },
+  rowChevron: {
+    fontSize: 14,
+    marginLeft: 2,
     flexShrink: 0,
   },
   empty: {
