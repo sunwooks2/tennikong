@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { MatchEntryEditor } from '@/components/match/MatchEntryEditor';
@@ -65,6 +66,7 @@ export function MatchForm({
   colors,
   onSuccess,
 }: MatchFormProps) {
+  const insets = useSafeAreaInsets();
   const [matchDate, setMatchDate] = useState(
     initialValues?.matchDate ?? initialDate ?? toDateKey(new Date()),
   );
@@ -158,7 +160,7 @@ export function MatchForm({
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 32 + insets.bottom }]}
         keyboardShouldPersistTaps="handled">
         <FormRow label="경기일" colors={colors}>
           <TextInput

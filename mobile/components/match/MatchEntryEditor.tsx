@@ -125,16 +125,6 @@ export function MatchEntryEditor({
 
         return (
           <View key={entry.entry_number} style={[styles.card, { backgroundColor: colors.card }]}>
-            {canRemove ? (
-              <TrackedPressable
-                eventName="match_entry_remove"
-                onPress={() => removeEntry(index)}
-                hitSlop={8}
-                style={styles.removeBtn}>
-                <Text style={[styles.remove, { color: colors.loss }]}>✕</Text>
-              </TrackedPressable>
-            ) : null}
-
             <View style={styles.entryTypeRow}>
               <Text style={[styles.index, { color: colors.muted }]}>{index + 1}</Text>
 
@@ -146,6 +136,16 @@ export function MatchEntryEditor({
                   colors={colors}
                 />
               </View>
+
+              {canRemove ? (
+                <TrackedPressable
+                  eventName="match_entry_remove"
+                  onPress={() => removeEntry(index)}
+                  hitSlop={8}
+                  style={[styles.removeBtn, { backgroundColor: `${colors.loss}18` }]}>
+                  <Text style={[styles.remove, { color: colors.loss }]}>✕</Text>
+                </TrackedPressable>
+              ) : null}
             </View>
 
             <View style={styles.entryMainRow}>
@@ -258,7 +258,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   card: {
-    position: 'relative',
     flexDirection: 'column',
     borderRadius: 12,
     paddingVertical: 10,
@@ -359,14 +358,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   removeBtn: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    zIndex: 1,
-    padding: 2,
+    flexShrink: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   remove: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   addButton: {
