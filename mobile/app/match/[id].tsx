@@ -6,6 +6,7 @@ import {
   View,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrackedPressable } from '@/components/analytics/TrackedPressable';
 import { MatchDetailContent } from '@/components/match/MatchDetailContent';
@@ -23,6 +24,7 @@ function resolveId(rawId: string | string[] | undefined): string | undefined {
 
 export default function MatchDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? 'light';
   const colors = Colors[colorScheme];
   const { id: rawId } = useLocalSearchParams<{ id: string }>();
@@ -107,7 +109,15 @@ export default function MatchDetailScreen() {
         <MatchDetailContent matches={matches} colors={colors} />
       </ScrollView>
 
-      <View style={[styles.actions, { backgroundColor: colors.background, borderColor: colors.muted }]}>
+      <View
+        style={[
+          styles.actions,
+          {
+            backgroundColor: colors.background,
+            borderColor: colors.muted,
+            paddingBottom: Math.max(insets.bottom, 10),
+          },
+        ]}>
         <TrackedPressable
           eventName="match_detail_edit"
           onPress={() => id && router.push({ pathname: '/match/edit/[id]', params: { id } })}
