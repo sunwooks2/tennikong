@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 
 import { Text, View } from '@/components/Themed';
@@ -8,19 +9,19 @@ import { handleAuthCallbackUrl, isNewUser } from '@/lib/auth';
 export default function AuthCallbackScreen() {
   const router = useRouter();
   const [message, setMessage] = useState('로그인 처리 중...');
+  const nativeUrl = Linking.useURL();
 
   useEffect(() => {
     const processCallback = async () => {
+      const url =
+        Platform.OS === 'web' && typeof window !== 'undefined'
+          ? window.location.href
+          : nativeUrl;
+
+      // On native, the deep-link URL may arrive a tick after this screen mounts.
+      if (!url) return;
+
       try {
-        const url =
-          Platform.OS === 'web' && typeof window !== 'undefined'
-            ? window.location.href
-            : null;
-
-        if (!url) {
-          throw new Error('콜백 URL을 찾을 수 없습니다.');
-        }
-
         const session = await handleAuthCallbackUrl(url);
 
         if (!session) {
@@ -49,7 +50,7 @@ export default function AuthCallbackScreen() {
     };
 
     processCallback();
-  }, [router]);
+  }, [router, nativeUrl]);
 
   return (
     <View style={styles.container}>
