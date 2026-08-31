@@ -1,3 +1,5 @@
+import { randomUUID } from 'expo-crypto';
+
 import { supabase } from '@/lib/supabase';
 import type {
   CourtType,
@@ -335,7 +337,7 @@ export async function createMatches(
   options?: { registrationId?: string; batchCreatedAt?: string; startOrder?: number },
 ) {
   const createdIds: string[] = [];
-  const registrationId = options?.registrationId ?? crypto.randomUUID();
+  const registrationId = options?.registrationId ?? randomUUID();
   const batchCreatedAt = options?.batchCreatedAt ?? new Date().toISOString();
   const batchBaseTime = new Date(batchCreatedAt).getTime();
   const startOrder = options?.startOrder ?? 0;
@@ -415,7 +417,7 @@ async function ensureRegistrationId(
   matchIds: string[],
   registrationId: string | null,
 ): Promise<string> {
-  const activeRegistrationId = registrationId ?? crypto.randomUUID();
+  const activeRegistrationId = registrationId ?? randomUUID();
 
   if (matchIds.length === 0) {
     return activeRegistrationId;
